@@ -53,6 +53,41 @@ CHIP ALU {
     And16(a=nxOp,b=nyOp,out=XandY);
     Mux16(a=XandY,b=XplusY,sel=f,out=fOfXY);
     Not16(in=fOfXY,out=notFOfXY);
-    Mux16(a=fOfXY,b=notFOfXY,sel=no,out=out);
+    Mux16(a=fOfXY,b=notFOfXY,sel=no,out=out,
+        out[15]=out15,
+        out[14]=out14,
+        out[13]=out13,
+        out[12]=out12,
+        out[11]=out11,
+        out[10]=out10,
+        out[9]=out9,
+        out[8]=out8,
+        out[7]=out7,
+        out[6]=out6,
+        out[5]=out5,
+        out[4]=out4,
+        out[3]=out3,
+        out[2]=out2,
+        out[1]=out1,
+        out[0]=out0
+    );
 
+    And(a=out15,b=true,out=ng);
+
+    Or(a=out0,b=out1,out=or1);
+    Or(a=out2,b=out3,out=or2);
+    Or(a=out4,b=out5,out=or3);
+    Or(a=out6,b=out7,out=or4);
+    Or(a=out8,b=out9,out=or5);
+    Or(a=out10,b=out11,out=or6);
+    Or(a=out12,b=out13,out=or7);
+    Or(a=out14,b=out15,out=or8);
+    Or(a=or1,b=or2,out=or9);
+    Or(a=or3,b=or4,out=or10);
+    Or(a=or5,b=or6,out=or11);
+    Or(a=or7,b=or8,out=or12);
+    Or(a=or9,b=or10,out=or13);
+    Or(a=or11,b=or12,out=or14);
+    Or(a=or13, b=or14,out=notzr);
+    Not(in=notzr,out=zr);
 }
