@@ -51,20 +51,20 @@ CHIP Register {
       a[14]=curr14,
       a[15]=curr15
     );
-    Bit(load=true,in=out0,out=out[0],out=curr0);
-    Bit(load=true,in=out1,out=out[1],out=curr1);
-    Bit(load=true,in=out2,out=out[2],out=curr2);
-    Bit(load=true,in=out3,out=out[3],out=curr3);
-    Bit(load=true,in=out4,out=out[4],out=curr4);
-    Bit(load=true,in=out5,out=out[5],out=curr5);
-    Bit(load=true,in=out6,out=out[6],out=curr6);
-    Bit(load=true,in=out7,out=out[7],out=curr7);
-    Bit(load=true,in=out8,out=out[8],out=curr8);
-    Bit(load=true,in=out9,out=out[9],out=curr9);
-    Bit(load=true,in=out10,out=out[10],out=curr10);
-    Bit(load=true,in=out11,out=out[11],out=curr11);
-    Bit(load=true,in=out12,out=out[12],out=curr12);
-    Bit(load=true,in=out13,out=out[13],out=curr13);
-    Bit(load=true,in=out14,out=out[14],out=curr14);
-    Bit(load=true,in=out15,out=out[15],out=curr15);
+    Bit(load=load,in=out0,out=out[0],out=curr0);
+    Bit(load=load,in=out1,out=out[1],out=curr1);
+    Bit(load=load,in=out2,out=out[2],out=curr2);
+    Bit(load=load,in=out3,out=out[3],out=curr3);
+    Bit(load=load,in=out4,out=out[4],out=curr4);
+    Bit(load=load,in=out5,out=out[5],out=curr5);
+    Bit(load=load,in=out6,out=out[6],out=curr6);
+    Bit(load=load,in=out7,out=out[7],out=curr7);
+    Bit(load=load,in=out8,out=out[8],out=curr8);
+    Bit(load=load,in=out9,out=out[9],out=curr9);
+    Bit(load=load,in=out10,out=out[10],out=curr10);
+    Bit(load=load,in=out11,out=out[11],out=curr11);
+    Bit(load=load,in=out12,out=out[12],out=curr12);
+    Bit(load=load,in=out13,out=out[13],out=curr13);
+    Bit(load=load,in=out14,out=out[14],out=curr14);
+    Bit(load=load,in=out15,out=out[15],out=curr15);
 }
