@@ -16,7 +16,7 @@
 //    @Multiplier = @Multiplier - 1
 // END
 
-@Sum
+@R2
 M=0
 @R0
 D=M
@@ -26,15 +26,35 @@ M=D
 D=M
 @Multiplier
 M=D
-@Loop
-@End
-
 
 (Loop)
+@Multiplier
+D=M
 
+// End if Multiplier 0
+// Either we're multiplying by 0 or we're done
+@End
+D;JEQ
 
+// Decrement Mutliplier
+@Multiplier
+D=D-1
+M=D
+
+// Add To Sum
+@R2
+D=M
+@Number
+D=D+M
+
+// Update Sum
+@R2
+M=D
+
+@Loop
+0;JMP
 
 (End)
-@11
+@End
 0;JMP
 
