@@ -26,4 +26,15 @@ M=D
 D=M
 @Multiplier
 M=D
+@Loop
+@End
+
+
+(Loop)
+
+
+
+(End)
+@11
+0;JMP
 
