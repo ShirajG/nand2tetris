@@ -18,6 +18,10 @@
 D=A
 @screenSize
 M=D
+@SCREEN
+D=D+A
+@screenEnd
+M=D
 
 (Loop)
   @KBD
@@ -31,30 +35,34 @@ M=D
   @Toggle
 
 (Blackout)
-  D=1
+  D=-1
   @Toggle
 
 (Toggle)
   @color
   M=D
 
+  @SCREEN
+  D=A
   @i
-  M=0
+  M=D
 
 (ScreenLoop)
   // Jump if index is 8k
   @i
   D=M
-  @screenSize
-  D=D-M
+  @screenEnd
+  D=M-D
   @Loop
   D;JEQ
 
-  @i
+  @color
   D=M
-  @SCREEN
-  A=D+A
-  M=!M
+
+  @i
+  A=M
+  M=D
+  D=A+1
   @i
   M=M+1
 
