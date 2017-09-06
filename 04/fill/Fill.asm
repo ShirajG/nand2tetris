@@ -29,14 +29,17 @@ M=D
   @Blackout
   D;JGT
   @Whiteout
+  0;JMP
 
 (Whiteout)
   D=0
   @Toggle
+  0;JMP
 
 (Blackout)
   D=-1
   @Toggle
+  0;JMP
 
 (Toggle)
   @color
