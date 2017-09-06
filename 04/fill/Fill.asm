@@ -13,17 +13,13 @@
 
 // Put your code here.
 
+// 8k Screen space
+@8192
+D=A
+@screenSize
+M=D
+
 (Loop)
-  @256
-  D=M
-  @rows
-  M=D
-
-  @512
-  D=M
-  @cols
-  M=D
-
   @KBD
   D=M
   @Blackout
@@ -31,13 +27,38 @@
   @Whiteout
 
 (Whiteout)
-  @SCREEN
-  M=0
-  @Loop
-  0;JMP
+  D=0
+  @Toggle
 
 (Blackout)
-  @SCREEN
-  M=1
+  D=1
+  @Toggle
+
+(Toggle)
+  @color
+  M=D
+
+  @i
+  M=0
+
+(ScreenLoop)
+  // Jump if index is 8k
+  @i
+  D=M
+  @screenSize
+  D=D-M
   @Loop
+  D;JEQ
+
+  @i
+  D=M
+  @SCREEN
+  A=D+A
+  M=!M
+  @i
+  M=M+1
+
+  @ScreenLoop
   0;JMP
+
+
