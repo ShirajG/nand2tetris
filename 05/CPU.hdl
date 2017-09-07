@@ -39,29 +39,64 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
+    Not(in=instruction[15], out=loadA);
 
     // ALU Out Or Instruction
     Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=false);
     // A Register Or M input
     Mux16(a=regAOut,b=inM,out=regAOrM,sel=false);
 
-    Register(in=ALUOrIns,load=instruction[15],out=regAOut,out[0..14]=addressM); // A Register
-    Register(in=ALUOut, out=regDOut); // D Register
-    PC(in=regAOut,reset=reset,load=false,inc=false,out[0..14]=pc); // PC  Register
+    // A Register
+    Register(in=ALUOrIns,load=loadA,out=regAOut,out[0..14]=addressM);
+    // D Register
+    Register(in=ALUOut, out=regDOut);
+
+    // PC  Register
+    // Load bit should only be set if a jump should happen, this lets
+    // the address from the A register replace the current value.
+    // Otherwise, increment
+    PC(in=regAOut,reset=reset,load=jump,inc=true,out[0..14]=pc);
+
+    // Instruction Bits
+    // ixxaccccccdddjjj
+    // 1111119876543210
+    // 543210
 
     ALU(
       x=regDOut,  // 16-bit input
-      y=false,  // 16-bit input
-      zx=false, // zero the x input?
-      nx=false, // negate the x input?
-      zy=false, // zero the y input?
-      ny=false, // negate the y input?
-      f=false,  // compute out = x + y (if 1) or x & y (if 0)
-      no=false, // negate the out output?
+      y=regAOrM,  // 16-bit input
+      zx=instruction[11], // zero the x input?
+      nx=instruction[10], // negate the x input?
+      zy=instruction[9], // zero the y input?
+      ny=instruction[8], // negate the y input?
+      f=instruction[7],  // compute out = x + y (if 1) or x & y (if 0)
+      no=instruction[6], // negate the out output?
       // OUTOUTS
       out=ALUOut, // 16-bit output
       out=outM,
-      zr=false, // 1 if (out == 0), 0 otherwise
-      ng=false // 1 if (out < 0),  0 otherwise
+      zr=zr, // 1 if (out == 0), 0 otherwise
+      ng=ng // 1 if (out < 0),  0 otherwise
     );
+
+    // Instruction Bits
+    // ixxaccccccdddjjj
+    // 1111119876543210
+    // 543210
+
+    // Compute Jump Logic
+    // Jump should only happen if:
+    // and(j1,j2,j3) ||
+    And(a=instruction[2], b=instruction[1], out=j1Andj2);
+    And(a=instruction[0], b=j1Andj2, out=forceJump);
+    // and(zr,j2) ||
+    And(a=zr,b=instruction[1],out=zeroAndj2);
+    // and(ng,j1) ||
+    And(a=ng,b=instruction[2],out=negAndj1);
+    // and(!or(zr,ng),j3)
+    Or(a=zr,b=ng,out=zrOrng);
+    Not(in=zrOrng,out=notzrOrng);
+    And(a=notzrOrng,b=instruction[0],out=notzrOrngAndj3);
+    // jump can now be used to set the load bit on the pc
+    Or8Way(in[0]=forceJump,in[1]=zeroAndj2,in[2]=negAndj1,in[3]=notzrOrngAndj3,out=jump);
 }
+
