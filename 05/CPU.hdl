@@ -39,28 +39,29 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // ALU Out Or Instruction
-    Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=0);
-    // A Register Or M input
-    Mux16(a=regAOut,b=inM,out=regAOrM,sel=0);
 
-    Register(in=ALUOrIns,out=regAOut,out=addressM); // A Register
+    // ALU Out Or Instruction
+    Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=false);
+    // A Register Or M input
+    Mux16(a=regAOut,b=inM,out=regAOrM,sel=false);
+
+    Register(in=ALUOrIns,load=instruction[15],out=regAOut,out[0..14]=addressM); // A Register
     Register(in=ALUOut, out=regDOut); // D Register
-    PC(in=regAOut,reset=reset,load=0,inc=0,out=pc); // PC  Register
+    PC(in=regAOut,reset=reset,load=false,inc=false,out[0..14]=pc); // PC  Register
 
     ALU(
       x=regDOut,  // 16-bit input
-      y[16]=0,  // 16-bit input
-      zx=0, // zero the x input?
-      nx=0, // negate the x input?
-      zy=0, // zero the y input?
-      ny=0, // negate the y input?
-      f=0,  // compute out = x + y (if 1) or x & y (if 0)
-      no=0, // negate the out output?
+      y=false,  // 16-bit input
+      zx=false, // zero the x input?
+      nx=false, // negate the x input?
+      zy=false, // zero the y input?
+      ny=false, // negate the y input?
+      f=false,  // compute out = x + y (if 1) or x & y (if 0)
+      no=false, // negate the out output?
       // OUTOUTS
       out=ALUOut, // 16-bit output
       out=outM,
-      zr=0, // 1 if (out == 0), 0 otherwise
-      ng=0 // 1 if (out < 0),  0 otherwise
+      zr=false, // 1 if (out == 0), 0 otherwise
+      ng=false // 1 if (out < 0),  0 otherwise
     );
 }
