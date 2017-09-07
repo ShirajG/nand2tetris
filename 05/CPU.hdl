@@ -39,17 +39,34 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    Not(in=instruction[15], out=loadA);
+    // Instruction Bits
+    // ixxaccccccdddjjj
+    // 1111119876543210
+    // 543210
+    // 1110110111100000
+
+    // Destination Logic when a C instruction:
+    // instruction[5] loads reg A
+    // instruction[4] loads reg D
+    // instruction[3] saves to Memory
+    // A instruction if MSB is 0
+    Not(in=instruction[15], out=loadAforAIns);
+    And(a=instruction[5],b=instruction[15],out=loadAforCIns);
+    Or(a=loadAforAIns,b=loadAforCIns,out=loadA);
+
+    And(a=instruction[4],b=instruction[15],out=loadD);
+    And(a=instruction[3],b=instruction[15],out=writeM);
 
     // ALU Out Or Instruction
-    Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=false);
+    Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=loadA);
     // A Register Or M input
-    Mux16(a=regAOut,b=inM,out=regAOrM,sel=false);
+    Mux16(a=regAOut,b=inM,out=regAOrM,sel=instruction[12]);
 
     // A Register
     ARegister(in=ALUOrIns,load=loadA,out=regAOut,out[0..14]=addressM);
     // D Register
-    DRegister(in=ALUOut, out=regDOut);
+    DRegister(in=ALUOut,load=loadD,out=regDOut);
+    // 1110110000010000
 
     // PC  Register
     // Load bit should only be set if a jump should happen, this lets
@@ -78,13 +95,8 @@ CHIP CPU {
       ng=ng // 1 if (out < 0),  0 otherwise
     );
 
-    // Instruction Bits
-    // ixxaccccccdddjjj
-    // 1111119876543210
-    // 543210
-
     // Compute Jump Logic
-    // Jump should only happen if:
+    // Jump should only happen if C instruction And:
     // and(j1,j2,j3) ||
     And(a=instruction[2], b=instruction[1], out=j1Andj2);
     And(a=instruction[0], b=j1Andj2, out=forceJump);
@@ -97,6 +109,7 @@ CHIP CPU {
     Not(in=zrOrng,out=notzrOrng);
     And(a=notzrOrng,b=instruction[0],out=notzrOrngAndj3);
     // jump can now be used to set the load bit on the pc
-    Or8Way(in[0]=forceJump,in[1]=zeroAndj2,in[2]=negAndj1,in[3]=notzrOrngAndj3,out=jump);
+    Or8Way(in[0]=forceJump,in[1]=zeroAndj2,in[2]=negAndj1,in[3]=notzrOrngAndj3,out=jumpish);
+    And(a=jumpish,b=instruction[15],out=jump);
 }
 
