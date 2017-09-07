@@ -47,9 +47,9 @@ CHIP CPU {
     Mux16(a=regAOut,b=inM,out=regAOrM,sel=false);
 
     // A Register
-    Register(in=ALUOrIns,load=loadA,out=regAOut,out[0..14]=addressM);
+    ARegister(in=ALUOrIns,load=loadA,out=regAOut,out[0..14]=addressM);
     // D Register
-    Register(in=ALUOut, out=regDOut);
+    DRegister(in=ALUOut, out=regDOut);
 
     // PC  Register
     // Load bit should only be set if a jump should happen, this lets
