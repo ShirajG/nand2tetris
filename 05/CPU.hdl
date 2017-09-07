@@ -58,7 +58,7 @@ CHIP CPU {
     And(a=instruction[3],b=instruction[15],out=writeM);
 
     // ALU Out Or Instruction
-    Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=loadA);
+    Mux16(a=ALUOut,b=instruction,out=ALUOrIns,sel=loadAforAIns);
     // A Register Or M input
     Mux16(a=regAOut,b=inM,out=regAOrM,sel=instruction[12]);
 
