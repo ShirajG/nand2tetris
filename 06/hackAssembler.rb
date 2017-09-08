@@ -6,7 +6,6 @@ def assert &block
 end
 
 def test_encoder
-  # Jump assertions
   assert {Encoder.encode('jump','null') == 000}
   assert {Encoder.encode('jump','JGT') == 001}
   assert {Encoder.encode('jump','JEQ') == 010}
@@ -58,6 +57,30 @@ def test_encoder
   puts "Encoder Passing"
 end
 
+def test_parser
+  inputs = [
+    'test',
+    'test;JMP',
+    'AM=test',
+    'MD=test;JEQ'
+  ]
+
+  expected_outputs = [
+    {jump:'null',dest:'null'},
+    {jump:'JMP',dest:'null'},
+    {jump:'null',dest:'AM'},
+    {jump:'JEQ',dest:'MD'},
+  ]
+
+  inputs.each_with_index do |el, i|
+    assert do
+      Parser.parse(el) == expected_outputs[i]
+    end
+  end
+
+  puts 'Parser Passing'
+end
+
 module Parser
 #unpacks instructions into parts
   def self.parse(line)
@@ -68,7 +91,8 @@ module Parser
     end
   end
 
-  def self.parse_a_instruction(line)
+  def self.parse_a_instruction(linue)
+    # Should resolve symbols and variables
     puts line
   end
 
@@ -185,4 +209,4 @@ class Main
 end
 
 test_encoder
-puts Parser.parse('D=D+1;JGT')
+test_parser
