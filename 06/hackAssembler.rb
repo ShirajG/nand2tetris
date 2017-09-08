@@ -6,92 +6,117 @@ def assert &block
 end
 
 def test_encoder
-  encoder = Encoder.new
   # Jump assertions
-  assert {encoder.encode('jump','null') == 000}
-  assert {encoder.encode('jump','JGT') == 001}
-  assert {encoder.encode('jump','JEQ') == 010}
-  assert {encoder.encode('jump','JGE') == 011}
-  assert {encoder.encode('jump','JLT') == 100}
-  assert {encoder.encode('jump','JNE') == 101}
-  assert {encoder.encode('jump','JLE') == 110}
-  assert {encoder.encode('jump','JMP') == 111}
+  assert {Encoder.encode('jump','null') == 000}
+  assert {Encoder.encode('jump','JGT') == 001}
+  assert {Encoder.encode('jump','JEQ') == 010}
+  assert {Encoder.encode('jump','JGE') == 011}
+  assert {Encoder.encode('jump','JLT') == 100}
+  assert {Encoder.encode('jump','JNE') == 101}
+  assert {Encoder.encode('jump','JLE') == 110}
+  assert {Encoder.encode('jump','JMP') == 111}
 
   # Dest assertions
-  assert {encoder.encode('dest','null') == 000}
-  assert {encoder.encode('dest','M') == 001}
-  assert {encoder.encode('dest','D') == 010}
-  assert {encoder.encode('dest','MD') == 011}
-  assert {encoder.encode('dest','A') == 100}
-  assert {encoder.encode('dest','AM') == 101}
-  assert {encoder.encode('dest','AD') == 110}
-  assert {encoder.encode('dest','AMD') == 111}
+  assert {Encoder.encode('dest','null') == 000}
+  assert {Encoder.encode('dest','M') == 001}
+  assert {Encoder.encode('dest','D') == 010}
+  assert {Encoder.encode('dest','MD') == 011}
+  assert {Encoder.encode('dest','A') == 100}
+  assert {Encoder.encode('dest','AM') == 101}
+  assert {Encoder.encode('dest','AD') == 110}
+  assert {Encoder.encode('dest','AMD') == 111}
 
   # Comp assertions
-  assert {encoder.encode('comp','0') == 0101010}
-  assert {encoder.encode('comp','1') == 0111111}
-  assert {encoder.encode('comp','-1') == 0111010}
-  assert {encoder.encode('comp','D') == 0001100}
-  assert {encoder.encode('comp','A') == 0110000}
-  assert {encoder.encode('comp','M') == 1110000}
-  assert {encoder.encode('comp','!D') == 0001101}
-  assert {encoder.encode('comp','!A') == 0110001}
-  assert {encoder.encode('comp','!M') == 1110001}
-  assert {encoder.encode('comp','-D') == 0001111}
-  assert {encoder.encode('comp','-A') == 0110011}
-  assert {encoder.encode('comp','-M') == 1110011}
-  assert {encoder.encode('comp','D+1') == 0011111}
-  assert {encoder.encode('comp','A+1') == 0110111}
-  assert {encoder.encode('comp','M+1') == 1110111}
-  assert {encoder.encode('comp','D-1') == 0001110}
-  assert {encoder.encode('comp','A-1') == 0110010}
-  assert {encoder.encode('comp','M-1') == 1110010}
-  assert {encoder.encode('comp','D+A') == 0000010}
-  assert {encoder.encode('comp','D+M') == 1000010}
-  assert {encoder.encode('comp','D-A') == 0010011}
-  assert {encoder.encode('comp','D-M') == 1010011}
-  assert {encoder.encode('comp','A-D') == 0000111}
-  assert {encoder.encode('comp','M-D') == 1000111}
-  assert {encoder.encode('comp','D&A') == 0000000}
-  assert {encoder.encode('comp','D&M') == 1000000}
-  assert {encoder.encode('comp','D|A') == 0010101}
-  assert {encoder.encode('comp','D|M') == 1010101}
+  assert {Encoder.encode('comp','0') == 0101010}
+  assert {Encoder.encode('comp','1') == 0111111}
+  assert {Encoder.encode('comp','-1') == 0111010}
+  assert {Encoder.encode('comp','D') == 0001100}
+  assert {Encoder.encode('comp','A') == 0110000}
+  assert {Encoder.encode('comp','M') == 1110000}
+  assert {Encoder.encode('comp','!D') == 0001101}
+  assert {Encoder.encode('comp','!A') == 0110001}
+  assert {Encoder.encode('comp','!M') == 1110001}
+  assert {Encoder.encode('comp','-D') == 0001111}
+  assert {Encoder.encode('comp','-A') == 0110011}
+  assert {Encoder.encode('comp','-M') == 1110011}
+  assert {Encoder.encode('comp','D+1') == 0011111}
+  assert {Encoder.encode('comp','A+1') == 0110111}
+  assert {Encoder.encode('comp','M+1') == 1110111}
+  assert {Encoder.encode('comp','D-1') == 0001110}
+  assert {Encoder.encode('comp','A-1') == 0110010}
+  assert {Encoder.encode('comp','M-1') == 1110010}
+  assert {Encoder.encode('comp','D+A') == 0000010}
+  assert {Encoder.encode('comp','D+M') == 1000010}
+  assert {Encoder.encode('comp','D-A') == 0010011}
+  assert {Encoder.encode('comp','D-M') == 1010011}
+  assert {Encoder.encode('comp','A-D') == 0000111}
+  assert {Encoder.encode('comp','M-D') == 1000111}
+  assert {Encoder.encode('comp','D&A') == 0000000}
+  assert {Encoder.encode('comp','D&M') == 1000000}
+  assert {Encoder.encode('comp','D|A') == 0010101}
+  assert {Encoder.encode('comp','D|M') == 1010101}
   puts "Encoder Passing"
 end
 
-class Parser
+module Parser
 #unpacks instructions into parts
-  def initialize()
-    @encoder = Encoder.new()
+  def self.parse(line)
+    if(line[0]== '@')
+      parse_a_instruction(line)
+    else
+      parse_c_instruction(line)
+    end
+  end
+
+  def self.parse_a_instruction(line)
+    puts line
+  end
+
+  def self.parse_c_instruction(line)
+    dest = 'null'
+    jump = 'null'
+    has_dest = line.index('=')
+    has_jump = line.index(';')
+
+    if has_dest
+      dest = line[0...has_dest]
+    end
+
+    if has_jump
+      jump = line[has_jump+1..-1]
+    end
+
+    { dest: dest,
+      jump: jump, }
   end
 end
 
-class Encoder
+module Encoder
 #translates each parsed part into binary code
-  attr_reader :jump_encodings
-  def initialize
-    @jump_encodings = {
-      'null': 000,
+  def self.jump_encodings
+    { 'null': 000,
       'JGT': 001,
       'JEQ': 010,
       'JGE': 011,
       'JLT': 100,
       'JNE': 101,
       'JLE': 110,
-      'JMP': 111
-    }
-    @dest_encodings = {
-      'null': 000,
+      'JMP': 111 }
+  end
+
+  def self.dest_encodings
+    { 'null': 000,
       'M': 001,
       'D': 010,
       'MD': 011,
       'A': 100,
       'AM': 101,
       'AD': 110,
-      'AMD': 111
-    }
-    @comp_encodings = {
-      '0':   0101010,
+      'AMD': 111 }
+  end
+
+  def self.comp_encodings
+    { '0':   0101010,
       '1':   0111111,
       '-1':  0111010,
       'D':   0001100,
@@ -118,18 +143,17 @@ class Encoder
       'D&A': 0000000,
       'D&M': 1000000,
       'D|A': 0010101,
-      'D|M': 1010101
-    }
+      'D|M': 1010101 }
   end
 
-  def encode(type,symbol)
+  def self.encode(type,symbol)
     case type
     when 'jump'
-      @jump_encodings[symbol.to_sym]
+      self.jump_encodings[symbol.to_sym]
     when 'dest'
-      @dest_encodings[symbol.to_sym]
+      self.dest_encodings[symbol.to_sym]
     when 'comp'
-      @comp_encodings[symbol.to_sym]
+      self.comp_encodings[symbol.to_sym]
     end
   end
 end
@@ -145,7 +169,7 @@ class Main
 
   def initialize
     @file = File.read(ARGV[0])
-    @parser = Parser.new
+    @output = [];
     @symbol_table = SymbolTable.new
 
     strip_whitespace_and_comments
@@ -160,6 +184,5 @@ class Main
   end
 end
 
-assembler=Main.new()
-# puts assembler.file
 test_encoder
+puts Parser.parse('D=D+1;JGT')
