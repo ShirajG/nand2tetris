@@ -6,70 +6,136 @@ def assert &block
 end
 
 def test_encoder
-  assert {Encoder.encode('jump','null') == 000}
-  assert {Encoder.encode('jump','JGT') == 001}
-  assert {Encoder.encode('jump','JEQ') == 010}
-  assert {Encoder.encode('jump','JGE') == 011}
-  assert {Encoder.encode('jump','JLT') == 100}
-  assert {Encoder.encode('jump','JNE') == 101}
-  assert {Encoder.encode('jump','JLE') == 110}
-  assert {Encoder.encode('jump','JMP') == 111}
+  jump_inputs = [
+    'null',
+    'JGT',
+    'JEQ',
+    'JGE',
+    'JLT',
+    'JNE',
+    'JLE',
+    'JMP'
+  ]
 
-  # Dest assertions
-  assert {Encoder.encode('dest','null') == 000}
-  assert {Encoder.encode('dest','M') == 001}
-  assert {Encoder.encode('dest','D') == 010}
-  assert {Encoder.encode('dest','MD') == 011}
-  assert {Encoder.encode('dest','A') == 100}
-  assert {Encoder.encode('dest','AM') == 101}
-  assert {Encoder.encode('dest','AD') == 110}
-  assert {Encoder.encode('dest','AMD') == 111}
+  jump_expected_outputs = [
+   000,
+   001,
+   010,
+   011,
+   100,
+   101,
+   110,
+   111
+  ]
 
-  # Comp assertions
-  assert {Encoder.encode('comp','0') == 0101010}
-  assert {Encoder.encode('comp','1') == 0111111}
-  assert {Encoder.encode('comp','-1') == 0111010}
-  assert {Encoder.encode('comp','D') == 0001100}
-  assert {Encoder.encode('comp','A') == 0110000}
-  assert {Encoder.encode('comp','M') == 1110000}
-  assert {Encoder.encode('comp','!D') == 0001101}
-  assert {Encoder.encode('comp','!A') == 0110001}
-  assert {Encoder.encode('comp','!M') == 1110001}
-  assert {Encoder.encode('comp','-D') == 0001111}
-  assert {Encoder.encode('comp','-A') == 0110011}
-  assert {Encoder.encode('comp','-M') == 1110011}
-  assert {Encoder.encode('comp','D+1') == 0011111}
-  assert {Encoder.encode('comp','A+1') == 0110111}
-  assert {Encoder.encode('comp','M+1') == 1110111}
-  assert {Encoder.encode('comp','D-1') == 0001110}
-  assert {Encoder.encode('comp','A-1') == 0110010}
-  assert {Encoder.encode('comp','M-1') == 1110010}
-  assert {Encoder.encode('comp','D+A') == 0000010}
-  assert {Encoder.encode('comp','D+M') == 1000010}
-  assert {Encoder.encode('comp','D-A') == 0010011}
-  assert {Encoder.encode('comp','D-M') == 1010011}
-  assert {Encoder.encode('comp','A-D') == 0000111}
-  assert {Encoder.encode('comp','M-D') == 1000111}
-  assert {Encoder.encode('comp','D&A') == 0000000}
-  assert {Encoder.encode('comp','D&M') == 1000000}
-  assert {Encoder.encode('comp','D|A') == 0010101}
-  assert {Encoder.encode('comp','D|M') == 1010101}
+  dest_inputs = [
+    'null',
+    'M',
+    'D',
+    'MD',
+    'A',
+    'AM',
+    'AD',
+    'AMD'
+  ]
+
+  dest_expected_outputs = [
+    000,
+    001,
+    010,
+    011,
+    100,
+    101,
+    110,
+    111
+  ]
+
+  comp_inputs = [
+    '0',
+    '1',
+    '-1',
+    'D',
+    'A',
+    'M',
+    '!D',
+    '!A',
+    '!M',
+    '-D',
+    '-A',
+    '-M',
+    'D+1',
+    'A+1',
+    'M+1',
+    'D-1',
+    'A-1',
+    'M-1',
+    'D+A',
+    'D+M',
+    'D-A',
+    'D-M',
+    'A-D',
+    'M-D',
+    'D&A',
+    'D&M',
+    'D|A',
+    'D|M'
+  ]
+
+  comp_expected_outputs = [
+    0101010,
+    0111111,
+    0111010,
+    0001100,
+    0110000,
+    1110000,
+    0001101,
+    0110001,
+    1110001,
+    0001111,
+    0110011,
+    1110011,
+    0011111,
+    0110111,
+    1110111,
+    0001110,
+    0110010,
+    1110010,
+    0000010,
+    1000010,
+    0010011,
+    1010011,
+    0000111,
+    1000111,
+    0000000,
+    1000000,
+    0010101,
+    1010101
+  ]
+
+  ['jump','dest','comp'].each do |type|
+    eval("#{type}_inputs").each_with_index do |el, i|
+      assert do
+        Encoder.encode(type,el) == eval("#{type}_expected_outputs")[i]
+      end
+    end
+  end
+
   puts "Encoder Passing"
 end
 
 def test_parser
   inputs = [
-    'test',
-    'test;JMP',
-    'AM=test',
-    'MD=test;JEQ'
+    'M',
+    'A;JMP',
+    'AM=0',
+    'MD=-1;JEQ'
   ]
 
   expected_outputs = [
-    {jump:'null',dest:'null'},
-    {jump:'JMP',dest:'null'},
-    {jump:'null',dest:'AM'},
-    {jump:'JEQ',dest:'MD'},
+    {comp:'M',jump:'null',dest:'null'},
+    {comp:'A',jump:'JMP',dest:'null'},
+    {comp:'0',jump:'null',dest:'AM'},
+    {comp:'-1',jump:'JEQ',dest:'MD'},
   ]
 
   inputs.each_with_index do |el, i|
@@ -101,17 +167,24 @@ module Parser
     jump = 'null'
     has_dest = line.index('=')
     has_jump = line.index(';')
+    comp_start = 0
+    comp_end = -1
 
     if has_dest
       dest = line[0...has_dest]
+      comp_start=has_dest + 1
     end
 
     if has_jump
       jump = line[has_jump+1..-1]
+      comp_end = has_jump - 1
     end
 
-    { dest: dest,
-      jump: jump, }
+    {
+      comp: line[comp_start..comp_end],
+      dest: dest,
+      jump: jump,
+    }
   end
 end
 
