@@ -2,7 +2,7 @@ class AssertionError < RuntimeError
 end
 
 def assert &block
-    raise AssertionError unless yield
+  raise AssertionError unless yield
 end
 
 def test_encoder
