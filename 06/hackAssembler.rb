@@ -309,7 +309,7 @@ class SymbolTable
   end
 
   def add(arg)
-   @table[arg[symbol]] = arg[value]
+    @table[arg[symbol]] = arg[value]
   end
 
   def get(symbol)
