@@ -147,6 +147,28 @@ def test_parser
   puts 'Parser Passing'
 end
 
+def test_symbol_table
+  table = SymbolTable.new
+  inputs = [
+    'R0', 'R1', 'R2', 'R3', 'R4',
+    'R5', 'R6', 'R7', 'R8', 'R9',
+    'R10', 'R11', 'R12', 'R13', 'R14',
+    'R15', 'SP', 'LCL', 'ARG', 'THIS',
+    'THAT', 'SCREEN', 'KBD'
+  ]
+  expected_outputs = [
+    0, 1, 2, 3, 4, 5, 6,
+    7, 8, 9, 10, 11, 12,
+    13, 14, 15, 0, 1, 2,
+    3, 4, 16384, 24576
+  ]
+
+  inputs.each_with_index do |el, i|
+    assert{ table.get(inputs[i]) == expected_outputs[i] }
+  end
+  puts 'Symbol Table Passing'
+end
+
 module Parser
 #unpacks instructions into parts
   def self.parse(line)
@@ -264,6 +286,7 @@ class SymbolTable
       'LCL': 1,
       'ARG': 2,
       'THIS': 3,
+      'THAT': 4,
       'SCREEN': 16384,
       'KBD': 24576,
       'R0': 0,
@@ -285,6 +308,13 @@ class SymbolTable
     }
   end
 
+  def add(arg)
+   @table[arg[symbol]] = arg[value]
+  end
+
+  def get(symbol)
+    @table[symbol.to_sym]
+  end
 end
 
 class Main
@@ -310,3 +340,4 @@ end
 
 test_encoder
 test_parser
+test_symbol_table
