@@ -24,6 +24,8 @@ $symbol_table = {
   'R15': 15
 }
 
+$var_address = 15
+
 class AssertionError < RuntimeError
 end
 
@@ -200,8 +202,6 @@ module Parser
   def self.parse(line)
     if(line[0] == '@')
       parse_a_instruction(line)
-    elsif(line[0] == '(')
-      parse_label(line)
     else
       parse_c_instruction(line)
     end
@@ -213,7 +213,13 @@ module Parser
     if $symbol_table[line.gsub('@','').to_s.to_sym]
       { addr:("%b" %  $symbol_table[line.gsub('@', '').to_s.to_sym]).rjust(16, '0') }
     else
-      { addr: line.gsub('@', '').to_i(10).to_s(2).rjust(16,'0') }
+      if( line.gsub('@','') =~ /\A\d+\z/ ? true : false)
+        { addr: ("%b" % line.gsub('@','').to_s).rjust(16, '0') }
+      else
+        $var_address += 1
+        $symbol_table[line.gsub('@','').to_s.to_sym] = $var_address
+        { addr: $var_address.to_s(2).rjust(16,'0') }
+      end
     end
   end
 
@@ -242,9 +248,6 @@ module Parser
     }
   end
 
-  def self.parse_label(line)
-   {addr: 'Label'}
-  end
 end
 
 module Encoder
@@ -346,7 +349,6 @@ class Main
 
     strip_whitespace_and_comments
     populate_symbols
-    puts @lines
     parse_lines
     encode_lines
     write_output
@@ -383,10 +385,11 @@ class Main
   def populate_symbols
     label_count = 0
     labels = []
+
     @lines.each_with_index do |line,i|
       if(line[0] == '(')
         label_name = line.match(/\((.*)\)/)[1]
-        $symbol_table[label_name] = i - label_count
+        $symbol_table[label_name.to_sym] = i - label_count
         label_count += 1
         labels << i
       end
@@ -402,4 +405,6 @@ end
 # test_parser
 # test_symbol_table
 a=Main.new
+
+puts $symbol_table
 # puts a.lines
