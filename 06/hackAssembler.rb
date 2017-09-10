@@ -1,3 +1,29 @@
+$symbol_table = {
+  'SP': 0,
+  'LCL': 1,
+  'ARG': 2,
+  'THIS': 3,
+  'THAT': 4,
+  'SCREEN': 16384,
+  'KBD': 24576,
+  'R0': 0,
+  'R1': 1,
+  'R2': 2,
+  'R3': 3,
+  'R4': 4,
+  'R5': 5,
+  'R6': 6,
+  'R7': 7,
+  'R8': 8,
+  'R9': 9,
+  'R10': 10,
+  'R11': 11,
+  'R12': 12,
+  'R13': 13,
+  'R14': 14,
+  'R15': 15
+}
+
 class AssertionError < RuntimeError
 end
 
@@ -175,7 +201,7 @@ module Parser
     if(line[0] == '@')
       parse_a_instruction(line)
     elsif(line[0] == '(')
-      parse_label
+      parse_label(line)
     else
       parse_c_instruction(line)
     end
@@ -184,7 +210,11 @@ module Parser
   def self.parse_a_instruction(line)
     # Should resolve symbols and variables
     # Basic A instruction, converts given address to 16-bit binary
-    { addr: line.gsub('@', '').to_i(10).to_s(2).rjust(16,'0') }
+    if $symbol_table[line.gsub('@','').to_s.to_sym]
+      { addr:("%b" %  $symbol_table[line.gsub('@', '').to_s.to_sym]).rjust(16, '0') }
+    else
+      { addr: line.gsub('@', '').to_i(10).to_s(2).rjust(16,'0') }
+    end
   end
 
   def self.parse_c_instruction(line)
@@ -208,41 +238,46 @@ module Parser
     {
       comp: line[comp_start..comp_end],
       dest: dest,
-      jump: jump,
+      jump: jump
     }
   end
 
-  def parse_label(line)
-
+  def self.parse_label(line)
+   {addr: 'Label'}
   end
 end
 
 module Encoder
 #translates each parsed part into binary code
   def self.jump_encodings
-    { 'null': '000',
+    {
+      'null': '000',
       'JGT': '001',
       'JEQ': '010',
       'JGE': '011',
       'JLT': '100',
       'JNE': '101',
       'JLE': '110',
-      'JMP': '111' }
+      'JMP': '111'
+    }
   end
 
   def self.dest_encodings
-    { 'null': '000',
+    {
+      'null': '000',
       'M': '001',
       'D': '010',
       'MD': '011',
       'A': '100',
       'AM': '101',
       'AD': '110',
-      'AMD': '111' }
+      'AMD': '111'
+    }
   end
 
   def self.comp_encodings
-    { '0':   '0101010',
+    {
+      '0':   '0101010',
       '1':   '0111111',
       '-1':  '0111010',
       'D':   '0001100',
@@ -269,7 +304,8 @@ module Encoder
       'D&A': '0000000',
       'D&M': '1000000',
       'D|A': '0010101',
-      'D|M': '1010101' }
+      'D|M': '1010101'
+    }
   end
 
   def self.encode_instruction(instruction)
@@ -297,46 +333,6 @@ module Encoder
   end
 end
 
-class SymbolTable
-# Manages the symbol table
-  attr_reader :table
-  def initialize
-    @table = {
-      'SP': 0,
-      'LCL': 1,
-      'ARG': 2,
-      'THIS': 3,
-      'THAT': 4,
-      'SCREEN': 16384,
-      'KBD': 24576,
-      'R0': 0,
-      'R1': 1,
-      'R2': 2,
-      'R3': 3,
-      'R4': 4,
-      'R5': 5,
-      'R6': 6,
-      'R7': 7,
-      'R8': 8,
-      'R9': 9,
-      'R10': 10,
-      'R11': 11,
-      'R12': 12,
-      'R13': 13,
-      'R14': 14,
-      'R15': 15
-    }
-  end
-
-  def add(arg)
-    @table[arg[symbol]] = arg[value]
-  end
-
-  def get(symbol)
-    @table[symbol.to_sym]
-  end
-end
-
 class Main
 # Initialize I/O and drive the assembly
   attr_accessor :file, :lines
@@ -347,9 +343,10 @@ class Main
     @file = File.read(ARGV[0])
     @lines = []
     @output = [];
-    @symbol_table = SymbolTable.new
 
     strip_whitespace_and_comments
+    populate_symbols
+    puts @lines
     parse_lines
     encode_lines
     write_output
@@ -382,10 +379,27 @@ class Main
         file.write(@lines.join("\n"))
     end
   end
+
+  def populate_symbols
+    label_count = 0
+    labels = []
+    @lines.each_with_index do |line,i|
+      if(line[0] == '(')
+        label_name = line.match(/\((.*)\)/)[1]
+        $symbol_table[label_name] = i - label_count
+        label_count += 1
+        labels << i
+      end
+    end
+
+    labels.reverse.each do |line_num|
+      @lines.delete_at(line_num)
+    end
+  end
 end
 
 # test_encoder
 # test_parser
 # test_symbol_table
 a=Main.new
-puts a.lines
+# puts a.lines
