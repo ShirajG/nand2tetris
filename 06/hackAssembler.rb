@@ -172,8 +172,10 @@ end
 module Parser
 #unpacks instructions into parts
   def self.parse(line)
-    if(line[0]== '@')
+    if(line[0] == '@')
       parse_a_instruction(line)
+    elsif(line[0] == '(')
+      parse_label
     else
       parse_c_instruction(line)
     end
@@ -181,7 +183,8 @@ module Parser
 
   def self.parse_a_instruction(line)
     # Should resolve symbols and variables
-    puts line
+    # Basic A instruction, converts given address to 16-bit binary
+    { addr: line.gsub('@', '').to_i(10).to_s(2).rjust(16,'0') }
   end
 
   def self.parse_c_instruction(line)
@@ -207,6 +210,10 @@ module Parser
       dest: dest,
       jump: jump,
     }
+  end
+
+  def parse_label(line)
+
   end
 end
 
@@ -265,6 +272,22 @@ module Encoder
       'D|M': 1010101 }
   end
 
+  def self.encode_instruction(instruction)
+    # Converts a parsed instruction to binary
+    # ie: {:comp=>"D", :dest=>"M", :jump=>"null"}
+    if instruction.key?(:addr)
+      instruction[:addr]
+    else
+      encoded_output = 0b11100000000000000
+      encoded_output | encode('comp', instruction[:comp])
+      # encoded_output << 3
+      # encoded_output | encode('dest', instruction[:dest])
+      # encoded_output << 3
+      # encoded_output | encode('jump', instruction[:jump])
+      encoded_output
+    end
+  end
+
   def self.encode(type,symbol)
     case type
     when 'jump'
@@ -319,7 +342,7 @@ end
 
 class Main
 # Initialize I/O and drive the assembly
-  attr_accessor :file
+  attr_accessor :file, :lines
 
   def initialize
     @file = File.read(ARGV[0])
@@ -329,6 +352,7 @@ class Main
 
     strip_whitespace_and_comments
     parse_lines
+    encode_lines
   end
 
   def strip_whitespace_and_comments
@@ -340,15 +364,23 @@ class Main
   end
 
   def parse_lines
-    @lines.each do  |line|
-      puts Parser.parse(line)
+    # Convert lines into parsed data
+    @lines.map! do  |line|
+      Parser.parse(line)
+    end
+  end
+
+  def encode_lines
+    # Convert parsed lines to binary
+    @lines.map! do |line|
+      Encoder.encode_instruction(line)
     end
   end
 end
 
-test_encoder
-test_parser
-test_symbol_table
+# test_encoder
+# test_parser
+# test_symbol_table
 a=Main.new
-puts a.file
-a.parse_lines
+puts a.lines
+# Parser.parse('@38')
