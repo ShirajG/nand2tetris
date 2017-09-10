@@ -403,8 +403,5 @@ end
 
 # test_encoder
 # test_parser
-# test_symbol_table
 a=Main.new
 
-puts $symbol_table
-# puts a.lines
