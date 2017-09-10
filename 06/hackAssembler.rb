@@ -179,7 +179,7 @@ module Parser
     end
   end
 
-  def self.parse_a_instruction(linue)
+  def self.parse_a_instruction(line)
     # Should resolve symbols and variables
     puts line
   end
@@ -323,21 +323,32 @@ class Main
 
   def initialize
     @file = File.read(ARGV[0])
+    @lines = []
     @output = [];
     @symbol_table = SymbolTable.new
 
     strip_whitespace_and_comments
+    parse_lines
   end
 
   def strip_whitespace_and_comments
     @file = @file.each_line.reject do |line|
       line.strip == "" || /^\/\//.match(line.strip)
     end.each do |line|
-      line.gsub!(/\/\/.*$/,'')
+      @lines << line.gsub(/\/\/.*$/,'').strip
     end.join
+  end
+
+  def parse_lines
+    @lines.each do  |line|
+      puts Parser.parse(line)
+    end
   end
 end
 
 test_encoder
 test_parser
 test_symbol_table
+a=Main.new
+puts a.file
+a.parse_lines
