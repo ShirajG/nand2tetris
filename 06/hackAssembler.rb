@@ -18,14 +18,14 @@ def test_encoder
   ]
 
   jump_expected_outputs = [
-    000,
-    001,
-    010,
-    011,
-    100,
-    101,
-    110,
-    111
+    '000',
+    '001',
+    '010',
+    '011',
+    '100',
+    '101',
+    '110',
+    '111'
   ]
 
   dest_inputs = [
@@ -40,14 +40,14 @@ def test_encoder
   ]
 
   dest_expected_outputs = [
-    000,
-    001,
-    010,
-    011,
-    100,
-    101,
-    110,
-    111
+    '000',
+    '001',
+    '010',
+    '011',
+    '100',
+    '101',
+    '110',
+    '111'
   ]
 
   comp_inputs = [
@@ -82,34 +82,34 @@ def test_encoder
   ]
 
   comp_expected_outputs = [
-    0101010,
-    0111111,
-    0111010,
-    0001100,
-    0110000,
-    1110000,
-    0001101,
-    0110001,
-    1110001,
-    0001111,
-    0110011,
-    1110011,
-    0011111,
-    0110111,
-    1110111,
-    0001110,
-    0110010,
-    1110010,
-    0000010,
-    1000010,
-    0010011,
-    1010011,
-    0000111,
-    1000111,
-    0000000,
-    1000000,
-    0010101,
-    1010101
+    '0101010',
+    '0111111',
+    '0111010',
+    '0001100',
+    '0110000',
+    '1110000',
+    '0001101',
+    '0110001',
+    '1110001',
+    '0001111',
+    '0110011',
+    '1110011',
+    '0011111',
+    '0110111',
+    '1110111',
+    '0001110',
+    '0110010',
+    '1110010',
+    '0000010',
+    '1000010',
+    '0010011',
+    '1010011',
+    '0000111',
+    '1000111',
+    '0000000',
+    '1000000',
+    '0010101',
+    '1010101'
   ]
 
   ['jump','dest','comp'].each do |type|
@@ -220,56 +220,56 @@ end
 module Encoder
 #translates each parsed part into binary code
   def self.jump_encodings
-    { 'null': 000,
-      'JGT': 001,
-      'JEQ': 010,
-      'JGE': 011,
-      'JLT': 100,
-      'JNE': 101,
-      'JLE': 110,
-      'JMP': 111 }
+    { 'null': '000',
+      'JGT': '001',
+      'JEQ': '010',
+      'JGE': '011',
+      'JLT': '100',
+      'JNE': '101',
+      'JLE': '110',
+      'JMP': '111' }
   end
 
   def self.dest_encodings
-    { 'null': 000,
-      'M': 001,
-      'D': 010,
-      'MD': 011,
-      'A': 100,
-      'AM': 101,
-      'AD': 110,
-      'AMD': 111 }
+    { 'null': '000',
+      'M': '001',
+      'D': '010',
+      'MD': '011',
+      'A': '100',
+      'AM': '101',
+      'AD': '110',
+      'AMD': '111' }
   end
 
   def self.comp_encodings
-    { '0':   0101010,
-      '1':   0111111,
-      '-1':  0111010,
-      'D':   0001100,
-      'A':   0110000,
-      'M':   1110000,
-      '!D':  0001101,
-      '!A':  0110001,
-      '!M':  1110001,
-      '-D':  0001111,
-      '-A':  0110011,
-      '-M':  1110011,
-      'D+1': 0011111,
-      'A+1': 0110111,
-      'M+1': 1110111,
-      'D-1': 0001110,
-      'A-1': 0110010,
-      'M-1': 1110010,
-      'D+A': 0000010,
-      'D+M': 1000010,
-      'D-A': 0010011,
-      'D-M': 1010011,
-      'A-D': 0000111,
-      'M-D': 1000111,
-      'D&A': 0000000,
-      'D&M': 1000000,
-      'D|A': 0010101,
-      'D|M': 1010101 }
+    { '0':   '0101010',
+      '1':   '0111111',
+      '-1':  '0111010',
+      'D':   '0001100',
+      'A':   '0110000',
+      'M':   '1110000',
+      '!D':  '0001101',
+      '!A':  '0110001',
+      '!M':  '1110001',
+      '-D':  '0001111',
+      '-A':  '0110011',
+      '-M':  '1110011',
+      'D+1': '0011111',
+      'A+1': '0110111',
+      'M+1': '1110111',
+      'D-1': '0001110',
+      'A-1': '0110010',
+      'M-1': '1110010',
+      'D+A': '0000010',
+      'D+M': '1000010',
+      'D-A': '0010011',
+      'D-M': '1010011',
+      'A-D': '0000111',
+      'M-D': '1000111',
+      'D&A': '0000000',
+      'D&M': '1000000',
+      'D|A': '0010101',
+      'D|M': '1010101' }
   end
 
   def self.encode_instruction(instruction)
@@ -278,13 +278,10 @@ module Encoder
     if instruction.key?(:addr)
       instruction[:addr]
     else
-      encoded_output = 0b11100000000000000
-      encoded_output | encode('comp', instruction[:comp])
-      # encoded_output << 3
-      # encoded_output | encode('dest', instruction[:dest])
-      # encoded_output << 3
-      # encoded_output | encode('jump', instruction[:jump])
-      encoded_output
+      encoded_output = '111'
+      encoded_output += encode('comp', instruction[:comp])
+      encoded_output += encode('dest', instruction[:dest])
+      encoded_output += encode('jump', instruction[:jump])
     end
   end
 
@@ -345,6 +342,8 @@ class Main
   attr_accessor :file, :lines
 
   def initialize
+    @filename = ARGV[0]
+    @out_file = ARGV[0][0..ARGV[0].rindex('.')] + 'hack'
     @file = File.read(ARGV[0])
     @lines = []
     @output = [];
@@ -353,6 +352,7 @@ class Main
     strip_whitespace_and_comments
     parse_lines
     encode_lines
+    write_output
   end
 
   def strip_whitespace_and_comments
@@ -376,6 +376,12 @@ class Main
       Encoder.encode_instruction(line)
     end
   end
+
+  def write_output
+    File.open(@out_file, 'w') do |file|
+        file.write(@lines.join("\n"))
+    end
+  end
 end
 
 # test_encoder
@@ -383,4 +389,3 @@ end
 # test_symbol_table
 a=Main.new
 puts a.lines
-# Parser.parse('@38')
