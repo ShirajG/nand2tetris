@@ -2,6 +2,7 @@ require 'byebug'
 
 module Parser
   @@file = []
+  @@parsed_file = []
   @@current_line = nil
   @@command_types = {
     'add': 'C_ARITHMETIC',
@@ -13,18 +14,22 @@ module Parser
     'and': 'C_ARITHMETIC',
     'or': 'C_ARITHMETIC',
     'not': 'C_ARITHMETIC',
-    'push': 'C_PUSH ',
-    'pop': 'C_POP ',
+    'push': 'C_PUSH',
+    'pop': 'C_POP',
     'label': 'C_LABEL',
     'goto': 'C_GOTO ',
-    'if': 'C_IF ',
-    'function': 'C_FUNCTION ',
-    'return': 'C_RETURN ',
+    'if': 'C_IF',
+    'function': 'C_FUNCTION',
+    'return': 'C_RETURN',
     'call': 'C_CALL'
   }
 
   def self.file
     @@file
+  end
+
+  def self.parsed_file
+    @@parsed_file
   end
 
   def self.current_line
@@ -48,7 +53,11 @@ module Parser
   end
 
   def self.command_type
-    @@command_types[current_line.split(' ')[0].to_sym]
+    c_type = @@command_types[current_line.split(' ')[0].to_sym]
+    if c_type == 'C_ARITHMETIC'
+      return current_line.split(' ')[0]
+    end
+    c_type
   end
 
   def self.init
@@ -61,7 +70,7 @@ module Parser
   def self.parse
     while has_more_commands
       advance
-      @@file[@@current_line] = {
+      @@parsed_file[@@current_line] = {
         command_type: command_type,
         arg1: current_line.split(' ')[1],
         arg2: current_line.split(' ')[2],
@@ -71,7 +80,36 @@ module Parser
 end
 
 module Encoder
-  @@out_file = ARGV[0][0..ARGV[0].rindex('.')] + 'asm'
+  @@out_file = nil
+
+  def self.init
+    @@out_file = File.open(set_file_name, 'w')
+  end
+
+  def self.close
+    @@out_file.close
+  end
+
+  def self.file
+    @@out_file
+  end
+
+  def self.set_file_name
+    ARGV[0][0..ARGV[0].rindex('.')] + 'asm'
+  end
+
+  def self.write_arithmetic(command)
+    @@out_file << self.send(command).join("\n") << "\n"
+  end
+
+  def self.write_push_pop(command, segment, index)
+    case command
+    when 'C_PUSH'
+      @@out_file << push_code(segment, index).join("\n") << "\n"
+    else
+      @@out_file << pop_code(segment, index).join("\n") << "\n"
+    end
+  end
 
   def self.increment_sp
     ["@SP","M=M+1;"]
@@ -81,19 +119,19 @@ module Encoder
     ["@SP","M=M-1;"]
   end
 
-  def self.convert_instruction(parsed_instruction)
-    case parsed_instruction[:type]
-    when 'push'
+  def self.push_code(segment, index)
       [
-        "//#{parsed_instruction}",
-        "#{self.segments(parsed_instruction)}",
+        "// push #{segment} #{index}",
+        "#{self.segment_address(segment, index)}",
         "@SP",
         "A=M",
         "M=D"
       ] + increment_sp
-    when 'pop'
+  end
+
+  def self.pop_code(segment, index)
+      [ "// pop #{segment} #{index}" ] +
       decrement_sp + [
-        "//#{parsed_instruction}",
         # Store Value to Pop in R5
         "@SP",
         "A=M",
@@ -101,9 +139,9 @@ module Encoder
         "@R5",
         "M=D",
         # Calculate memory address to write to in R6
-        "#{self.segments(parsed_instruction)}",
+        "#{segment}",
         "D=M",
-        "@#{parsed_instruction[:value]}",
+        "@#{index}",
         "D=D+A",
         "@R6",
         "M=D",
@@ -114,11 +152,10 @@ module Encoder
         "A=M",
         "M=D"
       ]
-    end
   end
 
-  def self.segments(instruction)
-    case instruction[:address]
+  def self.segment_address(segment, index)
+    case segment
     when 'local'
       "@LCL"
     when 'argument'
@@ -132,9 +169,9 @@ module Encoder
     when 'temp'
       "@R5"
     when 'constant'
-      "@#{instruction[:value]}\nD=A;"
+      "@#{index}\nD=A;"
     when 'static'
-      "@#{ARGV[0][0..ARGV[0].rindex('.')] + instruction[:value]}\nD=M"
+      "@#{ARGV[0][0..ARGV[0].rindex('.')] + index}\nD=M"
     end
   end
 
@@ -219,8 +256,26 @@ end
 
 Parser.init
 Parser.parse
-puts Parser.file
+puts Parser.parsed_file
+Encoder.init
 
-# File.open(out_file,'w') do |assembly|
-#   assembly.write(output.compact.reject{|line| line==''}.join("\n"))
-# end
+Parser.parsed_file.each do |parsed_line|
+  case parsed_line[:command_type]
+  when 'C_PUSH'
+    Encoder.write_push_pop(
+      parsed_line[:command_type],
+      parsed_line[:arg1],
+      parsed_line[:arg2]
+    )
+  when 'C_POP'
+    Encoder.write_push_pop(
+      parsed_line[:command_type],
+      parsed_line[:arg1],
+      parsed_line[:arg2]
+    )
+  else
+    Encoder.write_arithmetic(parsed_line[:command_type])
+  end
+end
+
+Encoder.close
