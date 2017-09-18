@@ -243,31 +243,24 @@ module Encoder
 
   def self.eq
   # Check equality by subtracting the 2 values?
+    ['// eq'] + decrement_sp
   end
 
   def self.gt
-
+    ['// gt'] + decrement_sp
   end
 
   def self.lt
-
+    ['// lt'] + decrement_sp
   end
 end
 
 Parser.init
 Parser.parse
-puts Parser.parsed_file
 Encoder.init
-
 Parser.parsed_file.each do |parsed_line|
   case parsed_line[:command_type]
-  when 'C_PUSH'
-    Encoder.write_push_pop(
-      parsed_line[:command_type],
-      parsed_line[:arg1],
-      parsed_line[:arg2]
-    )
-  when 'C_POP'
+  when 'C_PUSH' || 'C_POP'
     Encoder.write_push_pop(
       parsed_line[:command_type],
       parsed_line[:arg1],
@@ -277,5 +270,4 @@ Parser.parsed_file.each do |parsed_line|
     Encoder.write_arithmetic(parsed_line[:command_type])
   end
 end
-
 Encoder.close
