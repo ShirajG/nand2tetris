@@ -117,11 +117,11 @@ module Encoder
   end
 
   def self.increment_sp
-    ["@SP","M=M+1;"]
+    ["@SP","M=M+1"]
   end
 
   def self.decrement_sp
-    ["@SP","M=M-1;"]
+    ["@SP","M=M-1"]
   end
 
   def self.push_code(segment, index)
@@ -248,9 +248,8 @@ module Encoder
 
   def self.eq
     label_id = increment_label
-    decrement_sp + [
-      '// eq',
-      '@SP',
+
+    ['// eq'] + decrement_sp + [
       'A=M',
       'D=M',
       '@R13',
@@ -262,21 +261,22 @@ module Encoder
       '@R13',
       'D=D-M',
       # D contains X - Y
-      "@SP",
-      "A=M-1",
-      # M is ready to be written to
       "@EqTrueJump#{label_id}",
       'D;JEQ',
       "@EqFalseJump#{label_id}",
       '0;JMP',
       "(EqTrueJump#{label_id})",
-      "M=-1",
-      "@EqEndJump#{label_id}",
-      "0;JMP",
+        "@SP",
+        "A=M-1",
+        "M=-1",
+        "@EqEndJump#{label_id}",
+        "0;JMP",
       "(EqFalseJump#{label_id})",
-      "M=0",
-      "@EqEndJump#{label_id}",
-      "0;JMP",
+        "@SP",
+        "A=M-1",
+        "M=0",
+        "@EqEndJump#{label_id}",
+        "0;JMP",
       "(EqEndJump#{label_id})"
     ]
   end
