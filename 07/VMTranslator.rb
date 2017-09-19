@@ -144,7 +144,7 @@ module Encoder
         "@R13",
         "M=D",
         # Calculate memory address to write to in R6
-        "#{segment}",
+        "#{segment_address(segment,index)}",
         "D=M",
         "@#{index}",
         "D=D+A",
@@ -356,6 +356,11 @@ Encoder.init
 Parser.parsed_file.each do |parsed_line|
   case parsed_line[:command_type]
   when 'C_PUSH'
+    Encoder.write_push_pop(
+      parsed_line[:command_type],
+      parsed_line[:arg1],
+      parsed_line[:arg2]
+    )
   when 'C_POP'
     Encoder.write_push_pop(
       parsed_line[:command_type],
@@ -367,3 +372,13 @@ Parser.parsed_file.each do |parsed_line|
   end
 end
 Encoder.close
+
+# Something messed up in temp
+# Expected
+# |RAM[256]|RAM[300]|RAM[401]|RAM[402]|RAM[3006|RAM[3012|RAM[3015|RAM[11] |
+# |    472 |     10 |     21 |     22 |     36 |     42 |     45 |    510 |
+#
+# Mine
+# |RAM[256]|RAM[300]|RAM[401]|RAM[402]|RAM[3006|RAM[3012|RAM[3015|RAM[11] |
+# |      0 |     10 |     21 |     22 |     36 |     42 |     45 |      0 |
+#
