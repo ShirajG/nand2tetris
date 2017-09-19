@@ -254,7 +254,7 @@ module Encoder
       'D=M',
       '@R13',
       'M=D',
-      # Store X in R13
+      # Store Y in R13
       '@SP',
       'A=M-1',
       'D=M',
@@ -282,11 +282,71 @@ module Encoder
   end
 
   def self.gt
-    ['// gt'] + decrement_sp
+    label_id = increment_label
+    ['// gt'] + decrement_sp + [
+      'A=M',
+      'D=M',
+      '@R13',
+      'M=D',
+      # Store Y in R13
+      '@SP',
+      'A=M-1',
+      'D=M',
+      '@R13',
+      'D=D-M',
+      # D contains X - Y
+      "@GtTrueJump#{label_id}",
+      'D;JGT',
+      "@GtFalseJump#{label_id}",
+      '0;JMP',
+      "(GtTrueJump#{label_id})",
+        "@SP",
+        "A=M-1",
+        "M=-1",
+        "@GtEndJump#{label_id}",
+        "0;JMP",
+      "(GtFalseJump#{label_id})",
+        "@SP",
+        "A=M-1",
+        "M=0",
+        "@GtEndJump#{label_id}",
+        "0;JMP",
+      "(GtEndJump#{label_id})"
+    ]
   end
 
   def self.lt
-    ['// lt'] + decrement_sp
+    label_id = increment_label
+    ['// lt'] + decrement_sp + [
+      'A=M',
+      'D=M',
+      '@R13',
+      'M=D',
+      # Store Y in R13
+      '@SP',
+      'A=M-1',
+      'D=M',
+      '@R13',
+      'D=D-M',
+      # D contains X - Y
+      "@GtTrueJump#{label_id}",
+      'D;JLT',
+      "@GtFalseJump#{label_id}",
+      '0;JMP',
+      "(GtTrueJump#{label_id})",
+        "@SP",
+        "A=M-1",
+        "M=-1",
+        "@GtEndJump#{label_id}",
+        "0;JMP",
+      "(GtFalseJump#{label_id})",
+        "@SP",
+        "A=M-1",
+        "M=0",
+        "@GtEndJump#{label_id}",
+        "0;JMP",
+      "(GtEndJump#{label_id})"
+    ]
   end
 end
 
