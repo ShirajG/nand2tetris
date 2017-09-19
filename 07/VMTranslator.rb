@@ -355,7 +355,8 @@ Parser.parse
 Encoder.init
 Parser.parsed_file.each do |parsed_line|
   case parsed_line[:command_type]
-  when 'C_PUSH' || 'C_POP'
+  when 'C_PUSH'
+  when 'C_POP'
     Encoder.write_push_pop(
       parsed_line[:command_type],
       parsed_line[:arg1],
