@@ -81,6 +81,7 @@ end
 
 module Encoder
   @@out_file = nil
+  @@label_id = 0
 
   def self.init
     @@out_file = File.open(set_file_name, 'w')
@@ -111,6 +112,10 @@ module Encoder
     end
   end
 
+  def self.increment_label
+    @@label_id+=1
+  end
+
   def self.increment_sp
     ["@SP","M=M+1;"]
   end
@@ -136,19 +141,19 @@ module Encoder
         "@SP",
         "A=M",
         "D=M",
-        "@R5",
+        "@R13",
         "M=D",
         # Calculate memory address to write to in R6
         "#{segment}",
         "D=M",
         "@#{index}",
         "D=D+A",
-        "@R6",
+        "@R14",
         "M=D",
         # Store Value in R5 at Memory Address in R6
-        "@R5",
+        "@R13",
         "D=M",
-        "@R6",
+        "@R14",
         "A=M",
         "M=D"
       ]
@@ -242,8 +247,38 @@ module Encoder
   end
 
   def self.eq
-  # Check equality by subtracting the 2 values?
-    ['// eq'] + decrement_sp
+    label_id = increment_label
+    decrement_sp + [
+      '// eq',
+      '@SP',
+      'A=M',
+      'D=M',
+      '@R13',
+      'M=D',
+      # Store X in R13
+      '@SP',
+      'A=M-1',
+      'D=M',
+      '@R13',
+      'D=D-M',
+      # D contains X - Y
+      "@SP",
+      "A=M-1",
+      # M is ready to be written to
+      "@EqTrueJump#{label_id}",
+      'D;JEQ',
+      "@EqFalseJump#{label_id}",
+      '0;JMP',
+      "(EqTrueJump#{label_id})",
+      "M=-1",
+      "@EqEndJump#{label_id}",
+      "0;JMP",
+      "(EqFalseJump#{label_id})",
+      "M=0",
+      "@EqEndJump#{label_id}",
+      "0;JMP",
+      "(EqEndJump#{label_id})"
+    ]
   end
 
   def self.gt
