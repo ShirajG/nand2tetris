@@ -1,6 +1,5 @@
-require 'byebug'
-
 module Parser
+# Converts strings from a VM file into parsed commands
   @@file = []
   @@parsed_file = []
   @@current_line = nil
@@ -23,6 +22,13 @@ module Parser
     'return': 'C_RETURN',
     'call': 'C_CALL'
   }
+
+  def self.init
+    File.open(ARGV[0], 'r').each_line do |line|
+      @@file << line.gsub(/\/\/.*$/,'').strip
+    end
+    @@file = @@file.compact.reject{|line| line==""}
+  end
 
   def self.file
     @@file
@@ -60,13 +66,6 @@ module Parser
     c_type
   end
 
-  def self.init
-    File.open(ARGV[0], 'r').each_line do |line|
-      @@file << line.gsub(/\/\/.*$/,'').strip
-    end
-    @@file = @@file.compact.reject{|line| line==""}
-  end
-
   def self.parse
     while has_more_commands
       advance
@@ -80,6 +79,7 @@ module Parser
 end
 
 module Encoder
+# Converts parsed VM commands into Hack Assembly Code
   @@out_file = nil
   @@label_id = 0
 
