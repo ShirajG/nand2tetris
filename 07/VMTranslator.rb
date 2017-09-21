@@ -106,7 +106,12 @@ module Encoder
   def self.write_push_pop(command, segment, index)
     case command
     when 'C_PUSH'
-      @@out_file << push_code(segment, index).join("\n") << "\n"
+      case segment
+      when 'constant'
+        @@out_file << push_const(segment, index).join("\n") << "\n"
+      else
+        @@out_file << push_code(segment, index).join("\n") << "\n"
+      end
     else
       @@out_file << pop_code(segment, index).join("\n") << "\n"
     end
@@ -125,6 +130,20 @@ module Encoder
   end
 
   def self.push_code(segment, index)
+      [
+        "// push #{segment} #{index}",
+        "#{self.segment_address(segment, index)}",
+# =>    D contains the address of the value to push
+        "A=D",
+        "D=M",
+# =>    D contains the value to push
+        "@SP",
+        "A=M",
+        "M=D"
+      ] + increment_sp
+  end
+
+  def self.push_const(segment, index)
       [
         "// push #{segment} #{index}",
         "#{self.segment_address(segment, index)}",
