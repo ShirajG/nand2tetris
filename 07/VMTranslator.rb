@@ -137,17 +137,14 @@ module Encoder
   def self.pop_code(segment, index)
       [ "// pop #{segment} #{index}" ] +
       decrement_sp + [
-        # Store Value to Pop in R5
+        # Store Value to Pop in R13
         "@SP",
         "A=M",
         "D=M",
         "@R13",
         "M=D",
-        # Calculate memory address to write to in R6
+        # Store memory address to write to in R14
         "#{segment_address(segment,index)}",
-        "D=M",
-        "@#{index}",
-        "D=D+A",
         "@R14",
         "M=D",
         # Store Value in R5 at Memory Address in R6
@@ -162,17 +159,17 @@ module Encoder
   def self.segment_address(segment, index)
     case segment
     when 'local'
-      "@LCL"
+      "@LCL\nD=M\n@#{index}\nD=D+A"
     when 'argument'
-      "@ARG"
+      "@ARG\nD=M\n@#{index}\nD=D+A"
     when 'this'
-      "@THIS"
+      "@THIS\nD=M\n@#{index}\nD=D+A"
     when 'that'
-      "@THAT"
+      "@THAT\nD=M\n@#{index}\nD=D+A"
     when 'pointer'
-      "@THIS"
+      "@THIS\nD=M\n@#{index}\nD=D+A"
     when 'temp'
-      "@R5"
+      "@5\nD=A\n@#{index}\nD=D+A"
     when 'constant'
       "@#{index}\nD=A;"
     when 'static'
@@ -373,7 +370,9 @@ Parser.parsed_file.each do |parsed_line|
 end
 Encoder.close
 
-# Something messed up in temp
+# Something messed up?
+# Might be that pushing a value to the stack from the non constant
+# segments is not working
 # Expected
 # |RAM[256]|RAM[300]|RAM[401]|RAM[402]|RAM[3006|RAM[3012|RAM[3015|RAM[11] |
 # |    472 |     10 |     21 |     22 |     36 |     42 |     45 |    510 |
