@@ -109,11 +109,18 @@ module Encoder
       case segment
       when 'constant'
         @@out_file << push_const(segment, index).join("\n") << "\n"
+      when 'static'
+        @@out_file << push_static(segment, index).join("\n") << "\n"
       else
         @@out_file << push_code(segment, index).join("\n") << "\n"
       end
     else
-      @@out_file << pop_code(segment, index).join("\n") << "\n"
+      case segment
+      when 'static'
+        @@out_file << pop_static(segment, index).join("\n") << "\n"
+      else
+        @@out_file << pop_code(segment, index).join("\n") << "\n"
+      end
     end
   end
 
@@ -153,6 +160,18 @@ module Encoder
       ] + increment_sp
   end
 
+  def self.push_static(segment, index)
+      [
+        "// push #{segment} #{index}",
+        "@#{ARGV[0][ARGV[0].rindex('/')+1 ... ARGV[0].rindex('.')] + index}",
+        "D=M",
+# =>    D contains the value to push
+        "@SP",
+        "A=M",
+        "M=D"
+      ] + increment_sp
+  end
+
   def self.pop_code(segment, index)
       [ "// pop #{segment} #{index}" ] +
       decrement_sp + [
@@ -164,6 +183,28 @@ module Encoder
         "M=D",
         # Store memory address to write to in R14
         "#{segment_address(segment,index)}",
+        "@R14",
+        "M=D",
+        # Store Value in R5 at Memory Address in R6
+        "@R13",
+        "D=M",
+        "@R14",
+        "A=M",
+        "M=D"
+      ]
+  end
+
+  def self.pop_static(segment, index)
+      [ "// pop #{segment} #{index}" ] +
+      decrement_sp + [
+        # Store Value to Pop in R13
+        "@SP",
+        "A=M",
+        "D=M",
+        "@R13",
+        "M=D",
+        # Store memory address to write to in R14
+        "@#{ARGV[0][ARGV[0].rindex('/')+1 ... ARGV[0].rindex('.')] + index}\nD=A",
         "@R14",
         "M=D",
         # Store Value in R5 at Memory Address in R6
@@ -192,7 +233,7 @@ module Encoder
     when 'constant'
       "@#{index}\nD=A;"
     when 'static'
-      "@#{ARGV[0][0..ARGV[0].rindex('.')] + index}\nD=M"
+      "@#{ARGV[0][ARGV[0].rindex('/')+1 ... ARGV[0].rindex('.')] + index}\nD=M"
     end
   end
 
@@ -389,14 +430,3 @@ Parser.parsed_file.each do |parsed_line|
 end
 Encoder.close
 
-# Something messed up?
-# Might be that pushing a value to the stack from the non constant
-# segments is not working
-# Expected
-# |RAM[256]|RAM[300]|RAM[401]|RAM[402]|RAM[3006|RAM[3012|RAM[3015|RAM[11] |
-# |    472 |     10 |     21 |     22 |     36 |     42 |     45 |    510 |
-#
-# Mine
-# |RAM[256]|RAM[300]|RAM[401]|RAM[402]|RAM[3006|RAM[3012|RAM[3015|RAM[11] |
-# |      0 |     10 |     21 |     22 |     36 |     42 |     45 |      0 |
-#
