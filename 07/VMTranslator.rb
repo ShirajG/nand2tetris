@@ -186,7 +186,7 @@ module Encoder
     when 'that'
       "@THAT\nD=M\n@#{index}\nD=D+A"
     when 'pointer'
-      "@THIS\nD=M\n@#{index}\nD=D+A"
+      "@3\nD=A\n@#{index}\nD=D+A"
     when 'temp'
       "@5\nD=A\n@#{index}\nD=D+A"
     when 'constant'
