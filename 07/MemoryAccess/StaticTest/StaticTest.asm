@@ -30,7 +30,7 @@ A=M
 D=M
 @R13
 M=D
-@StaticTest8
+@StaticTest.8
 D=A
 @R14
 M=D
@@ -47,7 +47,7 @@ A=M
 D=M
 @R13
 M=D
-@StaticTest3
+@StaticTest.3
 D=A
 @R14
 M=D
@@ -64,7 +64,7 @@ A=M
 D=M
 @R13
 M=D
-@StaticTest1
+@StaticTest.1
 D=A
 @R14
 M=D
@@ -74,7 +74,7 @@ D=M
 A=M
 M=D
 // push static 3
-@StaticTest3
+@StaticTest.3
 D=M
 @SP
 A=M
@@ -82,7 +82,7 @@ M=D
 @SP
 M=M+1
 // push static 1
-@StaticTest1
+@StaticTest.1
 D=M
 @SP
 A=M
@@ -99,7 +99,7 @@ A=A-1;
 D=M-D;
 M=D;
 // push static 8
-@StaticTest8
+@StaticTest.8
 D=M
 @SP
 A=M
