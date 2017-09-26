@@ -163,7 +163,7 @@ module Encoder
   def self.push_static(segment, index)
       [
         "// push #{segment} #{index}",
-        "@#{ARGV[0][ARGV[0].rindex('/')+1 ... ARGV[0].rindex('.')] + index}",
+        "@#{ARGV[0][ARGV[0].rindex('/')+1 .. ARGV[0].rindex('.')] + index}",
         "D=M",
 # =>    D contains the value to push
         "@SP",
@@ -204,7 +204,7 @@ module Encoder
         "@R13",
         "M=D",
         # Store memory address to write to in R14
-        "@#{ARGV[0][ARGV[0].rindex('/')+1 ... ARGV[0].rindex('.')] + index}\nD=A",
+        "@#{ARGV[0][ARGV[0].rindex('/')+1 .. ARGV[0].rindex('.')] + index}\nD=A",
         "@R14",
         "M=D",
         # Store Value in R5 at Memory Address in R6
@@ -233,7 +233,7 @@ module Encoder
     when 'constant'
       "@#{index}\nD=A;"
     when 'static'
-      "@#{ARGV[0][ARGV[0].rindex('/')+1 ... ARGV[0].rindex('.')] + index}\nD=M"
+      "@#{ARGV[0][ARGV[0].rindex('/')+1 .. ARGV[0].rindex('.')] + index}\nD=M"
     end
   end
 
