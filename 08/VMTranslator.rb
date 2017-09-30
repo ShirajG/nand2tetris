@@ -16,7 +16,7 @@ module Parser
     'push': 'C_PUSH',
     'pop': 'C_POP',
     'label': 'C_LABEL',
-    'goto': 'C_GOTO ',
+    'goto': 'C_GOTO',
     'if-goto': 'C_IF',
     'function': 'C_FUNCTION',
     'return': 'C_RETURN',
@@ -24,6 +24,7 @@ module Parser
   }
 
   def self.init(filename)
+    @@file = []
     File.open(filename, 'r').each_line do |line|
       @@file << line.gsub(/\/\/.*$/,'').strip
     end
@@ -31,7 +32,7 @@ module Parser
   end
 
   def self.file
-    @@files
+    @@file
   end
 
   def self.parsed_file
@@ -114,6 +115,8 @@ module Encoder
         write_if(parsed_line[:arg1])
       when 'C_LABEL'
         write_label(parsed_line[:arg1])
+      when 'C_GOTO'
+        write_goto(parsed_line[:arg1])
       else
         write_arithmetic(parsed_line[:command_type])
       end
@@ -439,9 +442,9 @@ module Encoder
     @@out_file << "(#{label})\n"
   end
 
-  def self.write_goto(*args)
+  def self.write_goto(target_label)
     # Unconditional Jump to label
-
+    @@out_file << "// Goto #{target_label} \n"
   end
 
   def self.write_if(target_label)
@@ -477,9 +480,19 @@ if File.file?(ARGV[0])
   }
 end
 
+if File.directory?(ARGV[0])
+  files = Dir[ARGV[0] + "/*.vm"]
+  files.each do |file|
+   Parser.init(file)
+   Parser.parse
+   parsed_files << {
+     file: Parser.parsed_file,
+     name: file
+   }
+  end
+end
+
 parsed_files.each do |parsed_file|
   Encoder.encode(parsed_file)
 end
-
-
 
