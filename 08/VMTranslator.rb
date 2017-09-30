@@ -1,3 +1,5 @@
+# require 'byebug'
+
 module Parser
 # Converts strings from a VM file into parsed commands
   @@file = []
@@ -25,6 +27,8 @@ module Parser
 
   def self.init(filename)
     @@file = []
+    @@parsed_file = []
+    @@current_line = nil
     File.open(filename, 'r').each_line do |line|
       @@file << line.gsub(/\/\/.*$/,'').strip
     end
@@ -76,6 +80,7 @@ module Parser
         arg2: current_line.split(' ')[2],
       }
     end
+    @@parsed_file
   end
 end
 
@@ -89,6 +94,10 @@ module Encoder
     @@out_file
   end
 
+  def self.generate_label(label_name)
+    "#{@@current_file_name}_#{label_name}"
+  end
+
   def self.set_out_file_name(filename)
     filename[0..filename.rindex('.')] + 'asm'
   end
@@ -97,6 +106,7 @@ module Encoder
     @@current_file_name = parsed_file[:name][(parsed_file[:name].rindex('/')+1)...parsed_file[:name].rindex('.')]
     @@out_file = File.open(set_out_file_name(parsed_file[:name]), 'w')
     @@out_file << "// " + @@current_file_name + ".asm\n"
+
     parsed_file[:file].each do |parsed_line|
       case parsed_line[:command_type]
       when 'C_PUSH'
@@ -439,12 +449,16 @@ module Encoder
     # Label the current location in the code. Should be scoped to the function.
     # Cannot use a digit as its first letter
     @@out_file << "// Label\n"
-    @@out_file << "(#{label})\n"
+    @@out_file << "(#{self.generate_label(label)})\n"
   end
 
   def self.write_goto(target_label)
     # Unconditional Jump to label
-    @@out_file << "// Goto #{target_label} \n"
+    @@out_file << [
+      "// Goto #{target_label}",
+      "@#{generate_label(target_label)}",
+      "0;JMP",
+    ].join("\n") + "\n"
   end
 
   def self.write_if(target_label)
@@ -453,7 +467,7 @@ module Encoder
     # If popped val != 0, jump to label
     # else continue to next line
     @@out_file << "// If-goto #{target_label}\n"
-    @@out_file << "WHATT\n"
+    # @@out_file << "@#{generate_label(target_label)}\n"
   end
 
   def self.write_call(*args)
@@ -483,12 +497,11 @@ end
 if File.directory?(ARGV[0])
   files = Dir[ARGV[0] + "/*.vm"]
   files.each do |file|
-   Parser.init(file)
-   Parser.parse
-   parsed_files << {
-     file: Parser.parsed_file,
-     name: file
-   }
+    Parser.init(file)
+    parsed_files << {
+      file: Parser.parse,
+      name: file
+    }
   end
 end
 
