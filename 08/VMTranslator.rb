@@ -127,6 +127,12 @@ module Encoder
         write_label(parsed_line[:arg1])
       when 'C_GOTO'
         write_goto(parsed_line[:arg1])
+      when 'C_FUNCTION'
+        write_function(parsed_line[:arg1], parsed_line[:arg2])
+      when 'C_RETURN'
+        write_return()
+      when 'C_CALL'
+        write_call(parsed_line[:arg1], parsed_line[:arg2])
       else
         write_arithmetic(parsed_line[:command_type])
       end
@@ -186,13 +192,13 @@ module Encoder
   end
 
   def self.push_const(segment, index)
-      [
-        "// push #{segment} #{index}",
-        "#{self.segment_address(segment, index)}",
-        "@SP",
-        "A=M",
-        "M=D"
-      ] + increment_sp
+    [
+      "// push #{segment} #{index}",
+      "#{self.segment_address(segment, index)}",
+      "@SP",
+      "A=M",
+      "M=D"
+    ] + increment_sp
   end
 
   def self.push_static(segment, index)
@@ -477,19 +483,40 @@ module Encoder
       "@#{generate_label(target_label)}",
       "D;JNE"
     ].join("\n") + "\n"
-    # @@out_file << "@#{generate_label(target_label)}\n"
   end
 
-  def self.write_call(*args)
-
+  def self.write_call(fn_name, fn_arity)
+    # push return address
+    # push LCL
+    # push ARG
+    # push THIS
+    # push THAT
+    # ARG = SP - fn_arity - 5
+    # LCL = SP
+    # goto f
+    # (return-address)
   end
 
-  def self.write_return(*args)
-
+  def self.write_return()
+    # FRAME = LCL
+    # RET = *(FRAME - 5)
+    # *ARG = pop()
+    # SP = ARG + 1
+    # THAT = *(FRAME-1)
+    # THIS = *(FRAME-2)
+    # ARG = *(FRAME-2)
+    # LCL = *(FRAME-2)
+    # goto RET
   end
 
-  def self.write_function(*args)
+  def self.write_function(fn_name, fn_arity)
+    @@out_file << [
+      "(#{generate_label(fn_name)})"
+    ].join("\n") + "\n"
 
+    fn_arity.to_i.times do
+      @@out_file << push_const('constant', 0).join("\n") << "\n"
+    end
   end
 end
 
