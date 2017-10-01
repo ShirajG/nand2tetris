@@ -448,8 +448,10 @@ module Encoder
   def self.write_label(label)
     # Label the current location in the code. Should be scoped to the function.
     # Cannot use a digit as its first letter
-    @@out_file << "// Label\n"
-    @@out_file << "(#{self.generate_label(label)})\n"
+    @@out_file << [
+      "// Label",
+      "(#{self.generate_label(label)})\n"
+    ].join("\n") + "\n"
   end
 
   def self.write_goto(target_label)
@@ -466,7 +468,15 @@ module Encoder
     # Pops the stack and compares it to 0
     # If popped val != 0, jump to label
     # else continue to next line
-    @@out_file << "// If-goto #{target_label}\n"
+    @@out_file << [
+      "// If-goto #{target_label}",
+      "@SP",
+      "M=M-1",
+      "A=M",
+      "D=M",
+      "@#{generate_label(target_label)}",
+      "D;JNE"
+    ].join("\n") + "\n"
     # @@out_file << "@#{generate_label(target_label)}\n"
   end
 
