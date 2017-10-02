@@ -491,6 +491,7 @@ module Encoder
 
   def self.write_call(fn_name, fn_arity)
     cmd = [
+      "// call #{fn_name} #{fn_arity}",
       # push return address
       # push LCL
       "@LCL",
