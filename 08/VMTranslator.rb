@@ -1,4 +1,8 @@
 # require 'byebug'
+# SP LCL ARG THIS THAT
+# r0  r1  r2   r3   r4
+# TEMP = r5 - r12
+# Genral = r13 - r15
 
 module Parser
 # Converts strings from a VM file into parsed commands
@@ -486,27 +490,140 @@ module Encoder
   end
 
   def self.write_call(fn_name, fn_arity)
-    # push return address
-    # push LCL
-    # push ARG
-    # push THIS
-    # push THAT
+    cmd = [
+      # push return address
+      # push LCL
+      "@LCL",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push ARG
+      "@ARG",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push THIS
+      "@THIS",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push THAT
+      "@THAT",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      "D=M"
+    ]
     # ARG = SP - fn_arity - 5
-    # LCL = SP
-    # goto f
-    # (return-address)
+    (fn_arity.to_i + 5).times do
+        cmd << "D=D-1"
+    end
+    cmd2 = [
+      "@ARG",
+      "M=D",
+      # LCL = SP
+      "@SP",
+      "D=M",
+      "@LCL",
+      "M=D",
+      # goto fn_name
+      "@#{generate_label(fn_name)}",
+      "0;JMP",
+      # (return-address)
+      "(return-address)"
+    ]
+    (cmd + cmd2).join("\n") + "\n"
   end
 
   def self.write_return()
-    # FRAME = LCL
-    # RET = *(FRAME - 5)
-    # *ARG = pop()
-    # SP = ARG + 1
-    # THAT = *(FRAME-1)
-    # THIS = *(FRAME-2)
-    # ARG = *(FRAME-2)
-    # LCL = *(FRAME-2)
-    # goto RET
+    @@out_file << [
+      "// return",
+      # FRAME = LCL
+      "@LCL",
+      "D=M",
+      "@R5",
+      "M=D",
+      # RET = *(FRAME - 5)
+      # R6 will hold return address
+      "@R6",
+      "M=D",
+      "M=M-1",
+      "M=M-1",
+      "M=M-1",
+      "M=M-1",
+      "M=M-1",
+      "A=M",
+      "D=M",
+      "@R6",
+      "M=D",
+      # *ARG = pop()
+      "@SP",
+      "M=M-1",
+      "A=M",
+      "D=M",
+      "@ARG",
+      "A=M",
+      "M=D",
+      # SP = ARG + 1
+      "@ARG",
+      "D=M",
+      "@SP",
+      "M=D+1",
+      # THAT = *(FRAME-1)
+      "@R5",
+      "D=M",
+      "D=D-1",
+      "A=D",
+      "D=M",
+      "@THAT",
+      "M=D",
+      # THIS = *(FRAME-2)
+      "@R5",
+      "D=M",
+      "D=D-1",
+      "D=D-1",
+      "A=D",
+      "D=M",
+      "@THIS",
+      "M=D",
+      # ARG = *(FRAME-3)
+      "@R5",
+      "D=M",
+      "D=D-1",
+      "D=D-1",
+      "D=D-1",
+      "A=D",
+      "D=M",
+      "@ARG",
+      "M=D",
+      # LCL = *(FRAME-4)
+      "@R5",
+      "D=M",
+      "D=D-1",
+      "D=D-1",
+      "D=D-1",
+      "D=D-1",
+      "A=D",
+      "D=M",
+      "@LCL",
+      "M=D",
+      # goto RET
+      "@R6",
+      "A=M",
+      "0;JMP"
+    ].join("\n") + "\n"
   end
 
   def self.write_function(fn_name, fn_arity)
