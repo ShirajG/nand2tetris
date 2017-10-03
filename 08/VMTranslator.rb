@@ -1,4 +1,4 @@
-# require 'byebug'
+require 'byebug'
 # SP LCL ARG THIS THAT
 # r0  r1  r2   r3   r4
 # TEMP = r5 - r12
@@ -100,18 +100,21 @@ module Encoder
   end
 
   def self.generate_label(label_name)
-    "#{@@current_file_name}_#{label_name}"
+    "#{label_name}"
   end
 
   def self.set_out_file_name(filename)
     filename[0..filename.rindex('.')] + 'asm'
   end
 
-  def self.encode(parsed_file)
-    @@current_file_name = parsed_file[:name][(parsed_file[:name].rindex('/')+1)...parsed_file[:name].rindex('.')]
-    @@out_file = File.open(set_out_file_name(parsed_file[:name]), 'w')
+  def self.open(filename)
+    @@current_file_name = filename
+    @@out_file = File.open(filename, 'w')
     @@out_file << "// " + @@current_file_name + ".asm\n"
+    write_init
+  end
 
+  def self.encode(parsed_file)
     parsed_file[:file].each do |parsed_line|
       case parsed_line[:command_type]
       when 'C_PUSH'
@@ -142,6 +145,9 @@ module Encoder
         write_arithmetic(parsed_line[:command_type])
       end
     end
+  end
+
+  def self.close
     @@out_file.close
   end
 
@@ -456,8 +462,8 @@ module Encoder
     @@out_file << [
       "// SP to 256, call Sys.init",
       "@256",
-      "D=M",
-      "@SP",
+      "D=A",
+      "@R0",
       "M=D",
       "@Sys.init",
       "0;JMP"
@@ -493,7 +499,7 @@ module Encoder
       "M=M-1",
       "A=M",
       "D=M",
-      "@#{generate_label(target_label)}",
+      "@#{target_label}",
       "D;JNE"
     ].join("\n") + "\n"
   end
@@ -670,6 +676,8 @@ if File.file?(ARGV[0])
     file: Parser.parsed_file,
     name: ARGV[0]
   }
+  filename = ARGV[0][0..ARGV[0].rindex('.')] + 'asm'
+  Encoder.open(filename)
 end
 
 if File.directory?(ARGV[0])
@@ -681,9 +689,12 @@ if File.directory?(ARGV[0])
       name: file
     }
   end
+  filename = ARGV[0]+"/#{ARGV[0][(ARGV[0].rindex('/') + 1)..-1]}.asm"
+  Encoder.open(filename)
 end
 
 parsed_files.each do |parsed_file|
   Encoder.encode(parsed_file)
 end
 
+Encoder.close
