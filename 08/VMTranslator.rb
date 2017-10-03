@@ -1,4 +1,3 @@
-require 'byebug'
 # SP LCL ARG THIS THAT
 # r0  r1  r2   r3   r4
 # TEMP = r5 - r12
