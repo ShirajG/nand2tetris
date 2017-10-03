@@ -743,7 +743,7 @@ if File.file?(ARGV[0])
 end
 
 if File.directory?(ARGV[0])
-  files = Dir[ARGV[0] + "*.vm"]
+  files = Dir[ARGV[0] + "/*.vm"]
   files.each do |file|
     Parser.init(file)
     parsed_files << {
@@ -751,7 +751,10 @@ if File.directory?(ARGV[0])
       name: file
     }
   end
+
   filename = ARGV[0]+"#{ARGV[0][(ARGV[0].index('/') + 1)...-1]}.asm"
+  # Coursera Format
+  # filename = ARGV[0]+"/"+ARGV[0]+".asm"
   Encoder.open(filename,true)
 end
 
