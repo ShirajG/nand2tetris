@@ -459,14 +459,70 @@ module Encoder
   end
 
   def self.write_init
+    return_address = get_return_address
     @@out_file << [
       "// SP to 256, call Sys.init",
       "@256",
       "D=A",
       "@R0",
       "M=D",
+      "//CALL Sys.init, not just jump...",
+      # push return address
+      "@ReturnAddress#{return_address}",
+      "D=A",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push LCL
+      "@LCL",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push ARG
+      "@ARG",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push THIS
+      "@THIS",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      # push THAT
+      "@THAT",
+      "D=M",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
+      "D=M",
+      "D=D-1",
+      "D=D-1",
+      "D=D-1",
+      "D=D-1",
+      "D=D-1",
+      "@ARG",
+      "M=D",
+      # LCL = SP
+      "@SP",
+      "D=M",
+      "@LCL",
+      "M=D",
       "@Sys.init",
-      "0;JMP"
+      "0;JMP",
+      "(ReturnAddress#{return_address})"
     ].join("\n") + "\n"
   end
 
