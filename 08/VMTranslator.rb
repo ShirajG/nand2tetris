@@ -569,7 +569,7 @@ module Encoder
       # FRAME = LCL
       "@LCL",
       "D=M",
-      "@R5",
+      "@R7",
       "M=D",
       # RET = *(FRAME - 5)
       # R6 will hold return address
@@ -598,7 +598,7 @@ module Encoder
       "@SP",
       "M=D+1",
       # THAT = *(FRAME-1)
-      "@R5",
+      "@R7",
       "D=M",
       "D=D-1",
       "A=D",
@@ -606,7 +606,7 @@ module Encoder
       "@THAT",
       "M=D",
       # THIS = *(FRAME-2)
-      "@R5",
+      "@R7",
       "D=M",
       "D=D-1",
       "D=D-1",
@@ -615,7 +615,7 @@ module Encoder
       "@THIS",
       "M=D",
       # ARG = *(FRAME-3)
-      "@R5",
+      "@R7",
       "D=M",
       "D=D-1",
       "D=D-1",
@@ -625,7 +625,7 @@ module Encoder
       "@ARG",
       "M=D",
       # LCL = *(FRAME-4)
-      "@R5",
+      "@R7",
       "D=M",
       "D=D-1",
       "D=D-1",
