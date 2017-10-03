@@ -93,6 +93,7 @@ module Encoder
   @@out_file = nil
   @@current_file_name = nil
   @@label_id = 0
+  @@return_id = 0
 
   def self.file
     @@out_file
@@ -489,10 +490,24 @@ module Encoder
     ].join("\n") + "\n"
   end
 
+  def self.get_return_address
+    address = @@return_id
+    @@return_id += 1
+    address
+  end
+
   def self.write_call(fn_name, fn_arity)
+    return_address = get_return_address
     cmd = [
       "// call #{fn_name} #{fn_arity}",
       # push return address
+      "@ReturnAddress#{return_address}",
+      "D=A",
+      "@SP",
+      "A=M",
+      "M=D",
+      "@SP",
+      "M=M+1",
       # push LCL
       "@LCL",
       "D=M",
@@ -543,9 +558,9 @@ module Encoder
       "@#{generate_label(fn_name)}",
       "0;JMP",
       # (return-address)
-      "(return-address)"
+      "(ReturnAddress#{return_address})"
     ]
-    (cmd + cmd2).join("\n") + "\n"
+    @@out_file << (cmd + cmd2).join("\n") + "\n"
   end
 
   def self.write_return()
