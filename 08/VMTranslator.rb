@@ -452,8 +452,16 @@ module Encoder
     ]
   end
 
-  def self.write_init(*args)
-
+  def self.write_init
+    @@out_file << [
+      "// SP to 256, call Sys.init",
+      "@256",
+      "D=M",
+      "@SP",
+      "M=D",
+      "@Sys.init",
+      "0;JMP"
+    ].join("\n") + "\n"
   end
 
   def self.write_label(label)
