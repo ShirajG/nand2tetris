@@ -107,14 +107,17 @@ module Encoder
     filename[0..filename.rindex('.')] + 'asm'
   end
 
-  def self.open(filename)
+  def self.open(filename, bootstrap)
     @@current_file_name = filename
     @@out_file = File.open(filename, 'w')
     @@out_file << "// " + @@current_file_name + ".asm\n"
-    write_init
+    if bootstrap
+      write_init
+    end
   end
 
   def self.encode(parsed_file)
+    @@current_file_name = parsed_file[:name]
     parsed_file[:file].each do |parsed_line|
       case parsed_line[:command_type]
       when 'C_PUSH'
@@ -215,7 +218,7 @@ module Encoder
   def self.push_static(segment, index)
       [
         "// push #{segment} #{index}",
-        "@#{ARGV[0][ARGV[0].rindex('/')+1 .. ARGV[0].rindex('.')] + index}",
+        "@#{static_var_name + index}",
         "D=M",
 # =>    D contains the value to push
         "@SP",
@@ -246,6 +249,10 @@ module Encoder
       ]
   end
 
+  def self.static_var_name
+    "#{@@current_file_name[@@current_file_name.rindex('/')+1 .. @@current_file_name.rindex('.')]}"
+  end
+
   def self.pop_static(segment, index)
       [ "// pop #{segment} #{index}" ] +
       decrement_sp + [
@@ -256,7 +263,7 @@ module Encoder
         "@R13",
         "M=D",
         # Store memory address to write to in R14
-        "@#{ARGV[0][ARGV[0].rindex('/')+1 .. ARGV[0].rindex('.')] + index}\nD=A",
+        "@#{static_var_name + index}\nD=A",
         "@R14",
         "M=D",
         # Store Value in R5 at Memory Address in R6
@@ -733,11 +740,11 @@ if File.file?(ARGV[0])
     name: ARGV[0]
   }
   filename = ARGV[0][0..ARGV[0].rindex('.')] + 'asm'
-  Encoder.open(filename)
+  Encoder.open(filename,false)
 end
 
 if File.directory?(ARGV[0])
-  files = Dir[ARGV[0] + "/*.vm"]
+  files = Dir[ARGV[0] + "*.vm"]
   files.each do |file|
     Parser.init(file)
     parsed_files << {
@@ -745,8 +752,8 @@ if File.directory?(ARGV[0])
       name: file
     }
   end
-  filename = ARGV[0]+"/#{ARGV[0][(ARGV[0].rindex('/') + 1)..-1]}.asm"
-  Encoder.open(filename)
+  filename = ARGV[0]+"#{ARGV[0][(ARGV[0].index('/') + 1)...-1]}.asm"
+  Encoder.open(filename,true)
 end
 
 parsed_files.each do |parsed_file|
