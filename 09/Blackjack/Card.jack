@@ -1,0 +1,18 @@
+class Card {
+  field String suit;
+  field int value;
+
+  constructor Card new(int val, String s) {
+    let suit = s;
+    let value = val;
+    return this;
+  }
+
+  method int getVal () {
+    return value;
+  }
+
+  method String getSuit () {
+    return suit;
+  }
+}

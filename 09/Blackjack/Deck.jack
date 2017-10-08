@@ -1,0 +1,72 @@
+class Deck {
+  field Array cards;
+
+  constructor Deck new() {
+    let cards = Array.new(52);
+    do fill();
+    /* let this.values = Array.new(4); */
+    return this;
+  }
+
+  method void fill () {
+    var Array suits;
+    var Array values;
+    var int i,j,k;
+    let i = 0;
+    let j = 0;
+    let k = 0;
+    let suits = Array.new(4);
+    let suits[0] = "Hearts";
+    let suits[1] = "Clubs";
+    let suits[2] = "Diamonds";
+    let suits[3] = "Spades";
+    let values = Array.new(13);
+    let values[0] = 1;
+    let values[1] = 2;
+    let values[2] = 3;
+    let values[3] = 4;
+    let values[4] = 5;
+    let values[5] = 6;
+    let values[6] = 7;
+    let values[7] = 8;
+    let values[8] = 9;
+    let values[9] = 10;
+    let values[10] = 11;
+    let values[11] = 12;
+    let values[12] = 13;
+
+    while (i < 13) {
+      while (j < 4) {
+       let cards[k] = Card.new(values[i], suits[j]);
+       let k = k+1;
+       let j = j + 1;
+      }
+      let i = i + 1;
+      let j = 0;
+    }
+    return;
+  }
+
+  method void printDeck () {
+    var int i;
+    var Card card;
+    var int val;
+    var String suit;
+    let i = 0;
+    while (i < 52) {
+      let card = cards[i];
+      let val = card.getVal();
+      let suit = card.getSuit();
+      let i = i + 1;
+      do Output.printInt(val);
+      do Output.printString(suit);
+      do Output.printString("|");
+    }
+    return;
+  }
+
+  method void hello () {
+    do Output.printString("Hello World!");
+    return;
+  }
+}
