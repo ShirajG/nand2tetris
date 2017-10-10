@@ -60,7 +60,7 @@ class Deck {
       let i = i + 1;
       do Output.printInt(val);
       do Output.printString(suit);
-      do Output.printString("|");
+      do Output.printString("  |  ");
     }
     return;
   }

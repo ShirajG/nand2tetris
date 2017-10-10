@@ -1,0 +1,15 @@
+class Hand {
+  field Array cards;
+
+  constructor Hand new () {
+    return this;
+  }
+
+  method Array getHand () {
+    return cards;
+  }
+
+  method int getScore () {
+    return 0;
+  }
+}

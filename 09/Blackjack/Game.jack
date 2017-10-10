@@ -1,0 +1,21 @@
+/** This program is a simple Blackjack game.
+It uses a neverending deck, ie: multiples of the same card
+can appear.
+*/
+class Game {
+  field Deck gameDeck;
+  field Hand playerHand;
+  field Hand dealerHand;
+
+  constructor Game new () {
+    let gameDeck = Deck.new();
+    return this;
+  }
+
+  method void start () {
+    do Output.printInt(RandomNumberGenerator.getRand());
+    do Output.printString("Game Deck is: ");
+    do gameDeck.printDeck();
+    return;
+  }
+}

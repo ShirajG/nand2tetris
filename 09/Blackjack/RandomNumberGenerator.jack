@@ -1,0 +1,5 @@
+class RandomNumberGenerator {
+  function int getRand(){
+    return 2342;
+  }
+}
