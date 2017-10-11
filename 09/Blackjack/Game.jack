@@ -13,9 +13,27 @@ class Game {
   }
 
   method void start () {
-    do Output.printInt(RandomNumberGenerator.getRand());
-    do Output.printString("Game Deck is: ");
-    do gameDeck.printDeck();
+    var Card drawnCard;
+    var int i;
+    let i = 0;
+
+    while(Keyboard.keyPressed() = 0) {
+      let i = i+1;
+      do Screen.clearScreen();
+      do Output.moveCursor(0,0);
+      do Output.printString("Press Any Key to start");
+      do Output.printInt(i);
+      do Sys.wait(50);
+    }
+
+    do Screen.clearScreen();
+    do Output.moveCursor(0,0);
+
+    let drawnCard = gameDeck.getCard(RandomNumberGenerator.getRand(i));
+    do Output.printString(drawnCard.to_string());
+    // do Output.printString(drawnCard.to_string());
+    // do Output.printInt(cardIndex); RandomNumberGenerator.getRand(1);
+//    do gameDeck.printDeck();
     return;
   }
 }

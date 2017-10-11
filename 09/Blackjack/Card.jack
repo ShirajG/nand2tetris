@@ -15,4 +15,30 @@ class Card {
   method String getSuit () {
     return suit;
   }
+
+  method String to_string () {
+    var Array scope;
+    var String str_val;
+    let scope = Array.new(10);
+    let scope[0] = 0;
+    let scope[1] = suit.length();
+    let scope[2] = 0;
+
+    let str_val = String.new(20);
+    do str_val.setInt(value);
+    // append " of " to value
+    do str_val.appendChar(32);
+    do str_val.appendChar(79);
+    do str_val.appendChar(102);
+    do str_val.appendChar(32);
+
+    while(scope[0] < scope[1]) {
+      // append suit name
+      do str_val.appendChar(suit.charAt(scope[0]));
+      let scope[0] = scope[0] + 1;
+    }
+
+    do scope.dispose();
+    return str_val;
+  }
 }
