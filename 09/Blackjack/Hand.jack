@@ -1,7 +1,10 @@
 class Hand {
   field Array cards;
+  field int handSize;
 
   constructor Hand new () {
+    let cards = Array.new(10);
+    let handSize = 0;
     return this;
   }
 
@@ -11,5 +14,30 @@ class Hand {
 
   method int getScore () {
     return 0;
+  }
+
+  method void addCard(Card card) {
+    let cards[handSize] = card;
+    let handSize = handSize + 1;
+    return;
+  }
+
+  method void dealerPrint() {
+    var Card upCard;
+    let upCard = cards[0];
+    do Output.printString(upCard.to_string());
+    return;
+  }
+
+  method void print() {
+    var int i;
+    var Card currentCard;
+    let i = 0;
+    while(i < handSize) {
+      let currentCard = cards[i];
+      do Output.printString(currentCard.to_string());
+      let i = i + 1;
+    }
+    return;
   }
 }

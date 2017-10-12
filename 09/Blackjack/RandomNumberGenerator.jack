@@ -1,21 +1,44 @@
 class RandomNumberGenerator {
-  function int getRand(int seed){
-    var int a,b,c,i,rand;
-    let i = 0;
-    let a = 7;
-    let b = 397;
-    let rand = seed;
-    while (i < 1) {
-      // Modulo function
-      let rand = rand * a;
-      while ( rand > b ) {
-        let rand = rand - b;
-      }
-      let i = i+1;
+  static int seedVal;
+
+  function void setSeed(int seedArg) {
+    let seedVal = seedArg;
+    return;
+  }
+
+  function int getSeed(){
+    return seedVal;
+  }
+
+  function int getRand(){
+    // Uses an Multiplicative Congruential Generator to generate a number between 0 and 52
+    var int a,b,rand;
+    let a = 3;
+    let b = 59;
+    let rand = seedVal;
+
+    if (rand < 0) {
+      // Dont allow negative numbers. Flip MSB if negative
+      let rand = (rand + 32767);
     }
+
+    // Modulo function
+    let rand = rand * a;
+
+    if (rand < 0) {
+      // Dont allow negative numbers. Flip MSB if negative
+      let rand = (rand + 32767);
+    }
+
+    while ( rand > b ) {
+      let rand = rand - b;
+    }
+
     while (rand > 52) {
       let rand = rand - 52;
     }
+
+    let seedVal = rand;
     return rand;
   }
 }

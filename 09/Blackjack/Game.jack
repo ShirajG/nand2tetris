@@ -1,7 +1,3 @@
-/** This program is a simple Blackjack game.
-It uses a neverending deck, ie: multiples of the same card
-can appear.
-*/
 class Game {
   field Deck gameDeck;
   field Hand playerHand;
@@ -9,31 +5,38 @@ class Game {
 
   constructor Game new () {
     let gameDeck = Deck.new();
+    let playerHand = Hand.new();
+    let dealerHand = Hand.new();
     return this;
   }
 
   method void start () {
+    // Starts the game, putting 2 cards in the player and the dealers hands
     var Card drawnCard;
     var int i;
     let i = 0;
 
-    while(Keyboard.keyPressed() = 0) {
-      let i = i+1;
-      do Screen.clearScreen();
-      do Output.moveCursor(0,0);
-      do Output.printString("Press Any Key to start");
-      do Output.printInt(i);
-      do Sys.wait(50);
+    while(i < 2){
+      let drawnCard = gameDeck.getCard(RandomNumberGenerator.getRand());
+      do playerHand.addCard(drawnCard);
+      let i = i + 1;
     }
 
-    do Screen.clearScreen();
-    do Output.moveCursor(0,0);
+    let i = 0;
+    while(i < 2){
+      let drawnCard = gameDeck.getCard(RandomNumberGenerator.getRand());
+      do dealerHand.addCard(drawnCard);
+      let i = i + 1;
+    }
 
-    let drawnCard = gameDeck.getCard(RandomNumberGenerator.getRand(i));
-    do Output.printString(drawnCard.to_string());
-    // do Output.printString(drawnCard.to_string());
-    // do Output.printInt(cardIndex); RandomNumberGenerator.getRand(1);
-//    do gameDeck.printDeck();
+    do Output.printString(Strings.playerHand());
+    do playerHand.print();
+    do Output.println();
+
+    do Output.printString(Strings.dealerHand());
+    do dealerHand.dealerPrint();
+    do Output.println();
+
     return;
   }
 }

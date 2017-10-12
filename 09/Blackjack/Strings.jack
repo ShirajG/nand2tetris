@@ -1,0 +1,26 @@
+/**Keep track of strings used in the game in here. */
+class Strings {
+
+  static String playerHandMsg;
+  static String dealerHandMsg;
+  static String welcomeMsg;
+
+  function void init () {
+    let playerHandMsg = "Your Hand Is: ";
+    let dealerHandMsg = "Dealer Shows: ";
+    let welcomeMsg = "Welcome to Blackjack! Press any key to start!";
+    return;
+  }
+
+  function String playerHand(){
+    return playerHandMsg;
+  }
+
+  function String dealerHand(){
+    return dealerHandMsg;
+  }
+
+  function String welcome(){
+    return welcomeMsg;
+  }
+}

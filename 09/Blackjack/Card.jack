@@ -37,6 +37,7 @@ class Card {
       do str_val.appendChar(suit.charAt(scope[0]));
       let scope[0] = scope[0] + 1;
     }
+    do str_val.appendChar(32);
 
     do scope.dispose();
     return str_val;

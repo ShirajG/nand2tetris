@@ -68,9 +68,4 @@ class Deck {
   method Card getCard (int index) {
     return cards[index];
   }
-
-  method void hello () {
-    do Output.printString("Hello World!");
-    return;
-  }
 }
