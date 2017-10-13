@@ -1,25 +1,38 @@
 /** This program is a simple Blackjack game.
 It uses a neverending deck, ie: multiples of the same card can appear.  */
 class Main {
-   function void main() {
-      var int seed;
-      var Game game;
-      let game = Game.new();
-      do Strings.init();
+  // Use this for testing code quickly
+  function void testMain() {
+    var Test obj;
+    let obj = Test.new();
+    while(true){
+      // do obj.stackOverflow();
+      // do obj.heapOverflow();
+      // do obj.doStuff();
+      // do obj.strangeError();
+    }
+    return;
+  }
 
-      // Use the time til user hits a key to seed the RandomNumberGenerator
-      let seed = 0;
-      while(Keyboard.keyPressed() = 0){
-        do Utils.clear();
-        do Output.printString(Strings.welcome());
-        let seed = seed + 1;
-        do Sys.wait(100);
-      }
-      do RandomNumberGenerator.setSeed(seed);
+  function void main() {
+    var int seed;
+    var Game game;
+    let game = Game.new();
+    do Strings.init();
 
-      // Print the players hand
+    // Use the time til user hits a key to seed the RandomNumberGenerator
+    let seed = 0;
+    while(Keyboard.keyPressed() = 0){
       do Utils.clear();
-      do game.start();
-      return;
-   }
+      do Output.printString(Strings.welcome());
+      let seed = seed + 1;
+      do Sys.wait(100);
+    }
+    do RandomNumberGenerator.setSeed(seed);
+
+    // Print the players hand
+    do Utils.clear();
+    do game.start();
+    return;
+  }
 }
