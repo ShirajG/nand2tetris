@@ -4,12 +4,18 @@ class Strings {
   static String playerHandMsg;
   static String dealerHandMsg;
   static String welcomeMsg;
+  static String hitMsg;
 
   function void init () {
     let playerHandMsg = "Your Hand Is: ";
     let dealerHandMsg = "Dealer Shows: ";
     let welcomeMsg = "Welcome to Blackjack! Press any key to start!";
+    let hitMsg = "Do you want to hit? (y/n)";
     return;
+  }
+
+  function String askToHit() {
+    return hitMsg;
   }
 
   function String playerHand(){
