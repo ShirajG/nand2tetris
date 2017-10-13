@@ -3,7 +3,7 @@ class Hand {
   field int handSize;
 
   constructor Hand new () {
-    let cards = Array.new(10);
+    let cards = Array.new(52);
     let handSize = 0;
     return this;
   }
@@ -24,18 +24,24 @@ class Hand {
 
   method void dealerPrint() {
     var Card upCard;
+    var String cardString;
     let upCard = cards[0];
-    do Output.printString(upCard.to_string());
+    let cardString = upCard.to_string();
+    do Output.printString(cardString);
+    do cardString.dispose();
     return;
   }
 
   method void print() {
     var int i;
+    var String cardString;
     var Card currentCard;
     let i = 0;
     while(i < handSize) {
       let currentCard = cards[i];
-      do Output.printString(currentCard.to_string());
+      let cardString = currentCard.to_string();
+      do Output.printString(cardString);
+      do cardString.dispose();
       let i = i + 1;
     }
     return;
