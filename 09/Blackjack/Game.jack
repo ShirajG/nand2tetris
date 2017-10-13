@@ -11,7 +11,18 @@ class Game {
   }
 
   method void start () {
+    var bool gameInProgress;
+    let gameInProgress = true;
     // Starts the game, putting 2 cards in the player and the dealers hands
+    do deal();
+    do printHands();
+    while (gameInProgress) {
+      let gameInProgress =  getPlayerChoice();
+    }
+    return;
+  }
+
+  method void deal(){
     var Card drawnCard;
     var int i;
     let i = 0;
@@ -28,15 +39,38 @@ class Game {
       do dealerHand.addCard(drawnCard);
       let i = i + 1;
     }
+    return;
+  }
 
+  method void hit() {
+    // Adding a card to the Player hand. No local variables needed.
+    do playerHand.addCard(gameDeck.getCard(RandomNumberGenerator.getRand()));
+    return;
+  }
+
+  method void printHands(){
+    // Print player hand
     do Output.printString(Strings.playerHand());
     do playerHand.print();
     do Output.println();
-
+    // Print the face up card from the dealer hand
     do Output.printString(Strings.dealerHand());
     do dealerHand.dealerPrint();
     do Output.println();
-
     return;
+  }
+
+  method bool getPlayerChoice () {
+    var bool continue;
+    var String choice;
+    let choice = Keyboard.readLine(Strings.askToHit());
+
+    if(choice.charAt(0) = 89){
+      let continue = true;
+    }
+    do hit();
+    do Utils.clear();
+    do printHands();
+    return continue;
   }
 }
