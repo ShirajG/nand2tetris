@@ -1,19 +1,6 @@
 /** This program is a simple Blackjack game.
 It uses a neverending deck, ie: multiples of the same card can appear.  */
 class Main {
-  // Use this for testing code quickly
-  function void testMain() {
-    var Test obj;
-    let obj = Test.new();
-    while(true){
-      // do obj.stackOverflow();
-      // do obj.heapOverflow();
-      // do obj.doStuff();
-      // do obj.strangeError();
-    }
-    return;
-  }
-
   function void main() {
     var int seed;
     var Game game;
@@ -33,6 +20,19 @@ class Main {
     // Print the players hand
     do Utils.clear();
     do game.start();
+    return;
+  }
+
+  // Use this for testing code quickly
+  function void testMain() {
+    var Test obj;
+    let obj = Test.new();
+    while(true){
+      // do obj.stackOverflow();
+      // do obj.heapOverflow();
+      // do obj.doStuff();
+      // do obj.strangeError();
+    }
     return;
   }
 }
