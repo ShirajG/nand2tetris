@@ -51,10 +51,12 @@ class Game {
   method void printHands(){
     // Print player hand
     do Output.printString(Strings.playerHand());
+    do Output.println();
     do playerHand.print();
     do Output.println();
     // Print the face up card from the dealer hand
     do Output.printString(Strings.dealerHand());
+    do Output.println();
     do dealerHand.dealerPrint();
     do Output.println();
     return;
@@ -63,6 +65,7 @@ class Game {
   method bool getPlayerChoice () {
     var bool continue;
     var String choice;
+    do Output.moveCursor(22, 0);
     let choice = Keyboard.readLine(Strings.askToHit());
 
     if(choice.charAt(0) = 89){
@@ -93,6 +96,7 @@ class Game {
   method void endGame() {
     // Print player hand
     do Output.printString(Strings.playerHand());
+    do Output.println();
     do playerHand.print();
     do Output.println();
 
@@ -101,6 +105,7 @@ class Game {
     // Print the face up card from the dealer hand
     do Output.println();
     do Output.printString(Strings.dealerHand());
+    do Output.println();
     do dealerHand.print();
     do Output.println();
     do printScore();
@@ -134,7 +139,7 @@ class Game {
 
     if (playerScore > 21) {
       if (dealerScore > 21) {
-        let winner = "Both Bust, You shouldn't have hit."
+        let winner = "Both Bust, You shouldn't have hit.";
       } else {
         let winner = "You Bust, Dealer Wins";
       }
