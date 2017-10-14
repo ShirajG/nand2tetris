@@ -5,13 +5,43 @@ class Strings {
   static String dealerHandMsg;
   static String welcomeMsg;
   static String hitMsg;
+  static String winMsg;
+  static String lossMsg;
+  static String scoringMsg;
+  static String playerScoreMsg;
+  static String dealerScoreMsg;
 
   function void init () {
     let playerHandMsg = "Your Hand Is: ";
     let dealerHandMsg = "Dealer Shows: ";
     let welcomeMsg = "Welcome to Blackjack! Press any key to start!";
     let hitMsg = "Do you want to hit? (y/n)";
+    let scoringMsg = "Final Scores were:";
+    let playerScoreMsg = "You have ";
+    let dealerScoreMsg = "Dealer has ";
+    let winMsg = "You win!!";
+    let lossMsg = "You lose :(";
     return;
+  }
+
+  function String loss() {
+    return lossMsg;
+  }
+
+  function String win() {
+    return winMsg;
+  }
+
+  function String scoring(){
+    return scoringMsg;
+  }
+
+  function String playerScore(){
+    return playerScoreMsg;
+  }
+
+  function String dealerScore(){
+    return dealerScoreMsg;
   }
 
   function String askToHit() {
