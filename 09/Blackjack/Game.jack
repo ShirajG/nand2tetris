@@ -133,7 +133,11 @@ class Game {
     let dealerScore = dealerHand.calculateScore();
 
     if (playerScore > 21) {
-      let winner = "You Bust, Dealer Wins";
+      if (dealerScore > 21) {
+        let winner = "Both Bust, You shouldn't have hit."
+      } else {
+        let winner = "You Bust, Dealer Wins";
+      }
     } else {
       if (dealerScore > 21){
         let winner = "Dealer Busts, You Win!";
