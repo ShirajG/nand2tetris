@@ -24,8 +24,36 @@ class Card {
     let scope[1] = suit.length();
     let scope[2] = 0;
 
-    let str_val = String.new(20);
-    do str_val.setInt(value);
+    let str_val = String.new(50);
+    if (value = 1) {
+      do str_val.appendChar(65);
+      do str_val.appendChar(99);
+      do str_val.appendChar(101);
+    } else {
+      if (value = 11) {
+        do str_val.appendChar(74);
+        do str_val.appendChar(97);
+        do str_val.appendChar(99);
+        do str_val.appendChar(107);
+      } else {
+        if (value = 12) {
+          do str_val.appendChar(81);
+          do str_val.appendChar(117);
+          do str_val.appendChar(101);
+          do str_val.appendChar(101);
+          do str_val.appendChar(110);
+        } else {
+          if (value = 13) {
+            do str_val.appendChar(75);
+            do str_val.appendChar(105);
+            do str_val.appendChar(110);
+            do str_val.appendChar(103);
+          } else {
+            do str_val.setInt(value);
+          }
+        }
+      }
+    }
     // append " of " to value
     do str_val.appendChar(32);
     do str_val.appendChar(79);
