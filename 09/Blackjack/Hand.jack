@@ -53,6 +53,7 @@ class Hand {
       let currentCard = cards[i];
       let cardString = currentCard.to_string();
       do Output.printString(cardString);
+      do Output.println();
       do cardString.dispose();
       let i = i + 1;
     }

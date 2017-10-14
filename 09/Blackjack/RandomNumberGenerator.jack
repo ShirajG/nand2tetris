@@ -58,7 +58,7 @@ class RandomNumberGenerator {
     // Specific version of randRange for deck
     function int getRand() {
       var int scale;
-      let scale = (M / (51 - 0 + 1));
+      let scale = M / 52;
       return (RandomNumberGenerator.rand() / scale) + 0;
     }
 }

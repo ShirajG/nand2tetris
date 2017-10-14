@@ -1,0 +1,47 @@
+// Use this class as scratch to test things
+class Test {
+  field int counter;
+
+  constructor Test new () {
+    let counter = 1;
+    return this;
+  }
+
+  method int doStuff() {
+  // remove the calls to Xxx.dispose() to see errors
+    var int localVal;
+    var bool localBool;
+    var char localChar;
+    var String msg;
+    var Array localArray;
+
+    let localBool = false;
+    let localArray = Array.new(4);
+    let localArray[0] = 29 + counter;
+    let localArray[1] = 23 + counter;
+    let localArray[2] = 21 + counter;
+    let msg = "He";
+    let localVal = counter;
+    let counter = counter + 1;
+
+    do msg.dispose();
+    do localArray.dispose();
+
+    return localVal;
+  }
+
+  method void heapOverflow() {
+    // Not sure why this is triggering a heap overflow
+    var String msg;
+    let msg = "asdfkjalsfj";
+    return;
+  }
+
+  method void stackOverflow() {
+  // Not dealloc'ing this string causes stack overflow
+    var String msg;
+    let msg = String.new(3);
+    do msg.appendChar(64);
+    return;
+  }
+}

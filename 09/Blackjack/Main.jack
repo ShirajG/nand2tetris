@@ -13,7 +13,7 @@ class Main {
       do Utils.clear();
       do Output.printString(Strings.welcome());
       let seed = seed + 1;
-      do Sys.wait(100);
+      do Sys.wait(10);
     }
     do RandomNumberGenerator.setSeed(seed);
 
