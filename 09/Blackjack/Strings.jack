@@ -10,6 +10,10 @@ class Strings {
   static String scoringMsg;
   static String playerScoreMsg;
   static String dealerScoreMsg;
+  static String aceCard;
+  static String jackCard;
+  static String queenCard;
+  static String kingCard;
 
   function void init () {
     let playerHandMsg = "Your Hand Is: ";
@@ -21,6 +25,10 @@ class Strings {
     let dealerScoreMsg = "Dealer has ";
     let winMsg = "You win!!";
     let lossMsg = "You lose :(";
+    let aceCard = "Ace";
+    let jackCard = "Jack";
+    let queenCard = "Queen";
+    let kingCard = "King";
     return;
   }
 
