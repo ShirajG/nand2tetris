@@ -9,7 +9,14 @@ class Card {
   }
 
   method int getVal () {
-    return value;
+    // We need to limit jack, queen, king to return 10's
+    var int processedVal;
+    if (value > 10) {
+      let processedVal = 10;
+    } else {
+      let processedVal = value;
+    }
+    return processedVal;
   }
 
   method String getSuit () {
