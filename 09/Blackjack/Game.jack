@@ -67,10 +67,44 @@ class Game {
 
     if(choice.charAt(0) = 89){
       let continue = true;
+      do hit();
+      do Utils.clear();
+      do printHands();
+    } else {
+      do Utils.clear();
+      do endGame();
     }
-    do hit();
-    do Utils.clear();
-    do printHands();
     return continue;
+  }
+
+  method void endGame() {
+    // Print player hand
+    do Output.printString(Strings.playerHand());
+    do playerHand.print();
+    do Output.println();
+    // Print the face up card from the dealer hand
+    do Output.printString(Strings.dealerHand());
+    do dealerHand.print();
+    do Output.println();
+    do printScore();
+    return;
+  }
+
+  method void printScore() {
+    do Output.println();
+    do Output.printString(Strings.scoring());
+
+    do Output.println();
+    do Output.printString(Strings.playerScore());
+    do Output.printString(calculateScore(playerHand));
+
+    do Output.println();
+    do Output.printString(Strings.dealerScore());
+    do Output.printString(calculateScore(dealerHand));
+    return;
+  }
+
+  method String calculateScore(Hand hand) {
+    return '9';
   }
 }
