@@ -8,12 +8,24 @@ class Hand {
     return this;
   }
 
-  method Array getHand () {
-    return cards;
+  method int calculateScore () {
+    var int i;
+    var int sum;
+    var int currentVal;
+    var Card currentCard;
+
+    let sum = 0;
+    while(i < handSize ) {
+      let currentCard = cards[i];
+      let currentVal = currentCard.getVal();
+      let sum = sum + currentCard.getVal();
+      let i = i + 1;
+    }
+    return sum;
   }
 
-  method int getScore () {
-    return 0;
+  method Array getHand () {
+    return cards;
   }
 
   method void addCard(Card card) {
