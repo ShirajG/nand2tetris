@@ -96,15 +96,43 @@ class Game {
 
     do Output.println();
     do Output.printString(Strings.playerScore());
-    do Output.printString(calculateScore(playerHand));
+    do Output.printInt(playerHand.calculateScore());
 
     do Output.println();
     do Output.printString(Strings.dealerScore());
-    do Output.printString(calculateScore(dealerHand));
+    do Output.printInt(dealerHand.calculateScore());
+
+    do Output.println();
+    do Output.printString(determineWinner());
     return;
   }
 
-  method String calculateScore(Hand hand) {
-    return '9';
+  method String determineWinner () {
+    var int playerScore;
+    var int dealerScore;
+    var String winner;
+
+    let playerScore = playerHand.calculateScore();
+    let dealerScore = dealerHand.calculateScore();
+
+    if (playerScore > 21) {
+      let winner = "You Bust, Dealer Wins";
+    } else {
+      if (dealerScore > 21){
+        let winner = "Dealer Busts, You Win!";
+      } else {
+        if(playerScore = dealerScore)  {
+          let winner = "Push, You Win!";
+        } else {
+          if(dealerScore > playerScore) {
+            let winner = "Dealer Wins";
+          } else {
+            let winner = "You Win!";
+          }
+        }
+      }
+    }
+
+    return winner;
   }
 }
