@@ -77,12 +77,29 @@ class Game {
     return continue;
   }
 
+  method void hitDealer(){
+    // At game end, Dealer must hit until its hand is worth at least 16
+    var int dealerScore;
+    let dealerScore = dealerHand.calculateScore();
+    while(dealerScore < 16) {
+      do Output.println();
+      do Output.printString("Dealer must hit..");
+      do dealerHand.addCard(gameDeck.getCard(RandomNumberGenerator.getRand()));
+      let dealerScore = dealerHand.calculateScore();
+    }
+    return;
+  }
+
   method void endGame() {
     // Print player hand
     do Output.printString(Strings.playerHand());
     do playerHand.print();
     do Output.println();
+
+    do hitDealer();
+
     // Print the face up card from the dealer hand
+    do Output.println();
     do Output.printString(Strings.dealerHand());
     do dealerHand.print();
     do Output.println();
