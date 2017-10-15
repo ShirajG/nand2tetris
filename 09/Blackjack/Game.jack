@@ -4,6 +4,8 @@ class Game {
   field Hand dealerHand;
 
   constructor Game new () {
+    /** A Game has 2 hands, and a deck that it deals cards from.
+    */
     let gameDeck = Deck.new();
     let playerHand = Hand.new();
     let dealerHand = Hand.new();
@@ -11,6 +13,9 @@ class Game {
   }
 
   method void start () {
+    /** This is the main game loop, it handles getting input from the user,
+      displaying the players hands, and making sure to end/restart the game.
+    */
     var bool gameInProgress;
     var bool restart;
 
@@ -25,6 +30,7 @@ class Game {
 
     let restart = askForNewGame();
     if(restart) {
+      // Clear out the memory used by the old cards arrays in each hand
       do playerHand.dispose();
       do dealerHand.dispose();
       let playerHand = Hand.new();
@@ -33,12 +39,14 @@ class Game {
       do start();
     }
 
+    // Move cursor to the beginning of the last row
     do Output.moveCursor(22, 0);
     do Output.printString(Strings.endGame());
     return;
   }
 
   method void deal(){
+  /** Deal 2 random cards from the Game deck to each player */
     var Card drawnCard;
     var int i;
     let i = 0;
@@ -59,7 +67,7 @@ class Game {
   }
 
   method void hit() {
-    // Adding a card to the Player hand. No local variables needed.
+    /** Adding a card to the Player hand. No local variables needed. */
     do playerHand.addCard(gameDeck.getCard(RandomNumberGenerator.getRand()));
     return;
   }
@@ -79,6 +87,7 @@ class Game {
   }
 
   method bool getPlayerChoice () {
+    /** Prompts the player if they want to hit or not. */
     var bool continue;
     var String choice;
     do Output.moveCursor(22, 0);
@@ -97,6 +106,7 @@ class Game {
   }
 
   method bool askForNewGame() {
+  /** Ask the player to play anohter hand */
     var bool playAgain;
     var String choice;
 
@@ -125,6 +135,11 @@ class Game {
   }
 
   method void endGame() {
+  /** End game logic:
+      Print the players hand,
+      make the dealer draw til 16,
+      detrmine the winner by comparing hand scores
+  */
     // Print player hand
     do Output.printString(Strings.playerHand());
     do Output.println();
@@ -162,6 +177,7 @@ class Game {
   }
 
   method String determineWinner () {
+  /** Rules for determining winner */
     var int playerScore;
     var int dealerScore;
     var String winner;
