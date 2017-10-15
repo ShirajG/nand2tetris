@@ -1,4 +1,8 @@
-/**Keep track of strings used in the game in here. */
+/**
+Keep track of strings used in the game in here.
+Declared once, and reused from here. The functions
+just serve as accessors to these strings.
+*/
 class Strings {
 
   static String playerHandMsg;
@@ -15,6 +19,7 @@ class Strings {
   static String queenCard;
   static String kingCard;
   static String askToReplayMsg;
+  static String endGameMsg;
 
   function void init () {
     let playerHandMsg = "Your Hand Is: ";
@@ -26,8 +31,13 @@ class Strings {
     let dealerScoreMsg = "Dealer has ";
     let winMsg = "You win!!";
     let lossMsg = "You lose :(";
-    let askToReplayMsg = "Do you want to play another hand?";
+    let askToReplayMsg = "Do you want to play another hand? (y/n)";
+    let endGameMsg = "Thanks for playing!                         ";
     return;
+  }
+
+  function String endGame () {
+    return endGameMsg;
   }
 
   function String askToReplay () {
@@ -35,6 +45,9 @@ class Strings {
   }
 
   function void ace (String str_val) {
+    // The named card functions work with an already declared string
+    // We need to append into a string that has higher capacity
+    // since we are going to add more words after, ie: "Ace of Spades"
     // Appends "A" "c" "e" to string
     do str_val.appendChar(65);
     do str_val.appendChar(99);

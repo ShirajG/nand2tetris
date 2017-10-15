@@ -33,6 +33,8 @@ class Game {
       do start();
     }
 
+    do Output.moveCursor(22, 0);
+    do Output.printString(Strings.endGame());
     return;
   }
 
