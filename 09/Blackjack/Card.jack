@@ -23,7 +23,7 @@ class Card {
     return suit;
   }
 
-  method String to_string () {
+  method String toString () {
     var Array scope;
     var String str_val;
     let scope = Array.new(10);

@@ -3,55 +3,86 @@ class Hand {
   field int handSize;
 
   constructor Hand new () {
-    let cards = Array.new(52);
+    // A bigger hand than you should ever need
+    // Unless you implement arrays that resize when filled, this is good.
+    let cards = Array.new(32);
     let handSize = 0;
     return this;
   }
 
+  method void dispose() {
+    do cards.dispose();
+    return;
+  }
+
   method int calculateScore () {
-    var int i;
-    var int sum;
-    var int currentVal;
+  // Need to calculate the hand's value here, taking aces into account.
+    var int i, sum, currentVal, aceCount;
     var Card currentCard;
 
     let sum = 0;
+    let aceCount = 0;
     while(i < handSize ) {
       let currentCard = cards[i];
       let currentVal = currentCard.getVal();
-      let sum = sum + currentCard.getVal();
+      if (currentVal = 1) {
+        // Keep track of Aces separately.
+        let aceCount = aceCount + 1;
+      } else {
+        let sum = sum + currentVal;
+      }
       let i = i + 1;
     }
+
+    while (aceCount > 0) {
+      // Once all other cards have been summed, we can add in Aces
+      // We try to add as an 11 if it wont cause a bust
+      // If 11 will cause a bust just add 1
+      // Finally decrement the number of Aces to process
+      if((sum + 11) < 22) {
+        let sum = sum + 11;
+      } else {
+        let sum = sum + 1;
+      }
+
+      let aceCount = aceCount - 1;
+    }
+
     return sum;
   }
 
   method Array getHand () {
+    // Getter
     return cards;
   }
 
   method void addCard(Card card) {
+    // Add a card to the cards array
     let cards[handSize] = card;
     let handSize = handSize + 1;
     return;
   }
 
   method void dealerPrint() {
+    // Dealer print should only print one card, second is hidden;
     var Card upCard;
     var String cardString;
     let upCard = cards[0];
-    let cardString = upCard.to_string();
+    let cardString = upCard.toString();
     do Output.printString(cardString);
     do cardString.dispose();
     return;
   }
 
   method void print() {
+    // Print all cards in hand
     var int i;
     var String cardString;
     var Card currentCard;
     let i = 0;
     while(i < handSize) {
       let currentCard = cards[i];
-      let cardString = currentCard.to_string();
+      let cardString = currentCard.toString();
       do Output.printString(cardString);
       do Output.println();
       do cardString.dispose();

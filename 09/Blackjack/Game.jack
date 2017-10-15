@@ -12,6 +12,9 @@ class Game {
 
   method void start () {
     var bool gameInProgress;
+    var bool restart;
+
+    let restart = false;
     let gameInProgress = true;
     // Starts the game, putting 2 cards in the player and the dealers hands
     do deal();
@@ -19,6 +22,17 @@ class Game {
     while (gameInProgress) {
       let gameInProgress =  getPlayerChoice();
     }
+
+    let restart = askForNewGame();
+    if(restart) {
+      do playerHand.dispose();
+      do dealerHand.dispose();
+      let playerHand = Hand.new();
+      let dealerHand = Hand.new();
+      do Utils.clear();
+      do start();
+    }
+
     return;
   }
 
@@ -80,6 +94,21 @@ class Game {
     return continue;
   }
 
+  method bool askForNewGame() {
+    var bool playAgain;
+    var String choice;
+
+    let playAgain = false;
+
+    do Output.moveCursor(22, 0);
+    let choice = Keyboard.readLine(Strings.askToReplay());
+
+    if(choice.charAt(0) = 89){
+      let playAgain = true;
+    }
+    return playAgain;
+  }
+
   method void hitDealer(){
     // At game end, Dealer must hit until its hand is worth at least 16
     var int dealerScore;
@@ -109,6 +138,7 @@ class Game {
     do dealerHand.print();
     do Output.println();
     do printScore();
+
     return;
   }
 

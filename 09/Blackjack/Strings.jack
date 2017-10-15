@@ -14,6 +14,7 @@ class Strings {
   static String jackCard;
   static String queenCard;
   static String kingCard;
+  static String askToReplayMsg;
 
   function void init () {
     let playerHandMsg = "Your Hand Is: ";
@@ -25,7 +26,12 @@ class Strings {
     let dealerScoreMsg = "Dealer has ";
     let winMsg = "You win!!";
     let lossMsg = "You lose :(";
+    let askToReplayMsg = "Do you want to play another hand?";
     return;
+  }
+
+  function String askToReplay () {
+    return askToReplayMsg;
   }
 
   function void ace (String str_val) {
