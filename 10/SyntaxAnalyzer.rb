@@ -1,6 +1,6 @@
 class JackTokenizer
   def initialize(file)
-    @file = file
+    @file
   end
 
   def has_more_tokens()
@@ -90,7 +90,25 @@ class CompilationEngine
   end
 end
 
+class JackAnalyzer
+  def initialize
+    # Check if ARGV[0] is file or dir
+    # For each file, first pass it to a new
+    # tokenizer, then pass that tokenizer to
+    # a new Compilation Engine instance that
+    # will write the final output xml.
+    if File.file?(ARGV[0])
+      CompilationEngine.new(JackTokenizer.new(ARGV[0]))
+    end
 
+    if File.directory?(ARGV[0])
+      files = Dir[ARGV[0] + "/*.jack"]
+      files.each do |file|
+        CompilationEngine.new(JackTokenizer.new(file))
+      end
+    end
+  end
+end
 
 
 
