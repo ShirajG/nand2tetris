@@ -1,14 +1,30 @@
+
 class JackTokenizer
+  @@token_types = [
+    "KEYWORD", "SYMBOL", "IDENTIFIER",
+    "INT_CONST", "STRING_CONST" ]
+
+  @@keywords = [
+    "CLASS", "METHOD", "FUNCTION", "CONSTRUCTOR",
+    "INT", "BOOLEAN", "CHAR", "VOID", "VAR",
+    "STATIC", "FIELD", "LET", "DO", "IF", "ELSE",
+    "WHILE", "RETURN", "TRUE", "FALSE", "NULL",
+    "THIS" ]
+
+  def self.get_xml(type, content)
+    "<#{type}> #{content} </#{type}>"
+  end
+
   def initialize(file)
-    @file
-  end
-
-  def has_more_tokens()
-    # Return a Boolean
-    return true
-  end
-
-  def advance
+    @tokens = ""
+    @file = File.read(file)
+      .gsub(/\/\/.+$/,"") # remove // comments
+      .gsub(/\/\*[\S|\s]*\*\//,"") # remove /* comments */
+      .strip
+      .split("\n")
+      .map{|l| l.strip}
+      .reject{|l| l==""}
+      .join(" ")
   end
 
   def token_type
@@ -110,7 +126,7 @@ class JackAnalyzer
   end
 end
 
-
+JackAnalyzer.new()
 
 
 
