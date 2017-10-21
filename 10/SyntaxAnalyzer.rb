@@ -1,5 +1,5 @@
-
 class JackTokenizer
+  @@symbols = %w({ } ( ) [ ] . , ; + - * / & | < > = ~)
   @@token_types = {
     keyword: "KEYWORD", symbol: "SYMBOL", identifier: "IDENTIFIER",
     int: "INT_CONST", str: "STRING_CONST" }
@@ -47,14 +47,56 @@ class JackTokenizer
 
   def tokenize!(token_str)
     token = nil;
-    if ['{','}','(',')','[',']','.',',',';','+','-','*','/','&','|','<','>','=','~'].include?(token_str)
+    if @@symbols.include?(token_str)
       token = {
         type: @@token_types[:symbol],
         value: token_str
       }
+    elsif %w(class constructor function method field static var int char boolean void true false null this let do if else while return).include?(token_str)
+      token = {
+        type: @@token_types[:keyword],
+        value: token_str
+      }
+    elsif /\".+\"$/.match? token_str
+      token = {
+        type: @@token_types[:str],
+        value: token_str
+      }
     else
+      if contains_symbols(token_str)
+        # Split on the first found instance of a known symbol.
+        # Process the string up to the first known symbol,
+        # call tokenize on the rest
+        if (token_str[-1] == ';')
+
+          tokenize!(token_str[0..-2])
+          tokenize!(token_str[-1])
+        end
+        # puts token_str
+      else
+        if is_number?(token_str)
+          token = {
+            type: @@token_types[:int],
+            value: token_str
+          }
+        else
+          token = {
+            type: @@token_types[:identifier],
+            value: token_str
+          }
+        end
+      end
     end
-    @tokens << token
+
+    @tokens << token unless token.nil?
+  end
+
+  def contains_symbols(token_str)
+    !(token_str.split('') & @@symbols).empty?
+  end
+
+  def is_number?(obj)
+    obj.to_f.to_s == obj.to_s || obj.to_i.to_s == obj.to_s
   end
 end
 
