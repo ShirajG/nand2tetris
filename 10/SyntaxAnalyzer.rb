@@ -1,48 +1,60 @@
 
 class JackTokenizer
-  @@token_types = [
-    "KEYWORD", "SYMBOL", "IDENTIFIER",
-    "INT_CONST", "STRING_CONST" ]
+  @@token_types = {
+    keyword: "KEYWORD", symbol: "SYMBOL", identifier: "IDENTIFIER",
+    int: "INT_CONST", str: "STRING_CONST" }
 
-  @@keywords = [
-    "CLASS", "METHOD", "FUNCTION", "CONSTRUCTOR",
-    "INT", "BOOLEAN", "CHAR", "VOID", "VAR",
-    "STATIC", "FIELD", "LET", "DO", "IF", "ELSE",
-    "WHILE", "RETURN", "TRUE", "FALSE", "NULL",
-    "THIS" ]
+  @@keywords = {
+    class: "CLASS", method: "METHOD", function: "FUNCTION",
+    constructor: "CONSTRUCTOR", int: "INT", boolean: "BOOLEAN",
+    char: "CHAR", void: "VOID", var: "VAR",
+    static: "STATIC", field: "FIELD", let: "LET",
+    do: "DO", if: "IF", else: "ELSE", while: "WHILE",
+    return: "RETURN", true: "TRUE", false: "FALSE", null: "NULL",
+    this: "THIS" }
 
   def self.get_xml(type, content)
     "<#{type}> #{content} </#{type}>"
   end
 
   def initialize(file)
-    @tokens = ""
+    @tokens = []
     @file = File.read(file)
       .gsub(/\/\/.+$/,"") # remove // comments
       .gsub(/\/\*[\S|\s]*\*\//,"") # remove /* comments */
       .strip
-      .split("\n")
-      .map{|l| l.strip}
-      .reject{|l| l==""}
-      .join(" ")
+
+    within_quote = false
+    current_string = ""
+    @file.each_char do |char|
+      if within_quote
+        current_string += char;
+      else
+        if ["\r", "\n", " "].include? char
+          tokenize!(current_string) unless current_string == ""
+          current_string = ""
+        else
+          current_string += char
+        end
+      end
+
+      if char == '"'
+        within_quote = !within_quote
+      end
+    end
+    puts @tokens
   end
 
-  def token_type
-  end
-
-  def key_word
-  end
-
-  def symbol
-  end
-
-  def identifier
-  end
-
-  def int_val
-  end
-
-  def string_val
+  def tokenize!(token_str)
+    token = nil;
+    if ['{','}','(',')','[',']','.',',',';','+','-','*','/','&','|','<','>','=','~'].include?(token_str)
+      token = {
+        type: @@token_types[:symbol],
+        value: token_str
+      }
+    else
+    end
+    @tokens << token
   end
 end
 
