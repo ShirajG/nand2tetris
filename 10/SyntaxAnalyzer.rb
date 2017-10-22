@@ -41,6 +41,7 @@ class JackTokenizer
         next
       else
         if ["\r", "\n", " "].include? char
+          current_string.strip!
           tokenize!(current_string) unless current_string == ""
           current_string = ""
         else
@@ -85,7 +86,7 @@ class JackTokenizer
         type: @@token_types[:keyword],
         value: token_str
       }
-    elsif /\".+\"$/.match? token_str
+    elsif /^\".+\"$/.match? token_str
       token = {
         type: @@token_types[:str],
         value: token_str
