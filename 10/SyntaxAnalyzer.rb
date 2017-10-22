@@ -13,8 +13,11 @@ class JackTokenizer
     return: "return", true: "true", false: "false", null: "null",
     this: "this" }
 
+  attr_reader :xml
+
   def initialize(file)
     @tokens = []
+    @xml = ""
     @filename = file.gsub('.jack','')
     @file = File.read(file)
       .gsub(/\/\/.+$/,"") # remove // comments
@@ -60,18 +63,19 @@ class JackTokenizer
   end
 
   def output_xml
-    xml = File.open(@filename + '_Tokens.xml', 'w') do |outfile|
-      outfile << "<tokens>\n"
-      @tokens.each do |token|
+    @xml << "<tokens>\n"
+    @tokens.each do |token|
         token[:value].gsub!("&", "&amp;")
         token[:value].gsub!("<", "&lt;")
         token[:value].gsub!(">", "&gt;")
         token[:value].gsub!('"', '')
-        outfile << "<#{token[:type]}> #{token[:value]} </#{token[:type]}>\n"
-      end
-      outfile << "</tokens>"
+        @xml << "<#{token[:type]}> #{token[:value]} </#{token[:type]}>\n"
     end
-    xml.close
+    @xml << "</tokens>"
+
+    File.open(@filename + '_Tokens.xml', 'w') do |outfile|
+      outfile << @xml
+    end
   end
 
   def tokenize!(token_str)
