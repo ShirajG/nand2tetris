@@ -19,7 +19,6 @@ class JackTokenizer
     @file = File.read(file)
       .gsub(/\/\/.+$/,"") # remove // comments
       .strip
-      # .gsub(/\/\*[\S|\s]*\*\//,"") # remove /* comments */
     # puts @file
 
     within_quote = false
@@ -27,6 +26,7 @@ class JackTokenizer
     current_string = ""
     file_length = @file.length
     @file.each_char.with_index do |char, i|
+      # Keep track of when we are in a multi line comment. Ignore text.
       if char == '/' && @file[i+1] == '*'
         within_comment = true
       end
@@ -34,6 +34,7 @@ class JackTokenizer
       if within_quote
         current_string += char;
       elsif within_comment
+        # End comment when we hit '*/'
         if char == '/' && @file[i - 1] == '*'
           within_comment = false
         end
@@ -61,7 +62,11 @@ class JackTokenizer
     xml = File.open(@filename + '_Tokens.xml', 'w') do |outfile|
       outfile << "<tokens>\n"
       @tokens.each do |token|
-        outfile << "<#{token[:type]}> #{token[:value].gsub('"','')} </#{token[:type]}>\n"
+        token[:value].gsub!("&", "&amp;")
+        token[:value].gsub!("<", "&lt;")
+        token[:value].gsub!(">", "&gt;")
+        token[:value].gsub!('"', '')
+        outfile << "<#{token[:type]}> #{token[:value]} </#{token[:type]}>\n"
       end
       outfile << "</tokens>"
     end
