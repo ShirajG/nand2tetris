@@ -1,40 +1,52 @@
 class JackTokenizer
   @@symbols = %w({ } ( ) [ ] . , ; + - * / & | < > = ~)
   @@token_types = {
-    keyword: "KEYWORD", symbol: "SYMBOL", identifier: "IDENTIFIER",
-    int: "INT_CONST", str: "STRING_CONST" }
+    keyword: "keyword", symbol: "symbol", identifier: "identifier",
+    int: "integerConstant", str: "stringConstant" }
 
   @@keywords = {
-    class: "CLASS", method: "METHOD", function: "FUNCTION",
-    constructor: "CONSTRUCTOR", int: "INT", boolean: "BOOLEAN",
-    char: "CHAR", void: "VOID", var: "VAR",
-    static: "STATIC", field: "FIELD", let: "LET",
-    do: "DO", if: "IF", else: "ELSE", while: "WHILE",
-    return: "RETURN", true: "TRUE", false: "FALSE", null: "NULL",
-    this: "THIS" }
-
-  def self.get_xml(type, content)
-    "<#{type}> #{content} </#{type}>"
-  end
+    class: "class", method: "method", function: "function",
+    constructor: "constructor", int: "int", boolean: "boolean",
+    char: "char", void: "void", var: "var",
+    static: "static", field: "field", let: "let",
+    do: "do", if: "if", else: "else", while: "while",
+    return: "return", true: "true", false: "false", null: "null",
+    this: "this" }
 
   def initialize(file)
     @tokens = []
+    @filename = file.gsub('.jack','')
     @file = File.read(file)
       .gsub(/\/\/.+$/,"") # remove // comments
-      .gsub(/\/\*[\S|\s]*\*\//,"") # remove /* comments */
       .strip
+      # .gsub(/\/\*[\S|\s]*\*\//,"") # remove /* comments */
+    # puts @file
 
     within_quote = false
+    within_comment = false
     current_string = ""
-    @file.each_char do |char|
+    file_length = @file.length
+    @file.each_char.with_index do |char, i|
+      if char == '/' && @file[i+1] == '*'
+        within_comment = true
+      end
+
       if within_quote
         current_string += char;
+      elsif within_comment
+        if char == '/' && @file[i - 1] == '*'
+          within_comment = false
+        end
+        next
       else
         if ["\r", "\n", " "].include? char
           tokenize!(current_string) unless current_string == ""
           current_string = ""
         else
           current_string += char
+          if file_length == i + 1
+            tokenize! current_string
+          end
         end
       end
 
@@ -42,7 +54,18 @@ class JackTokenizer
         within_quote = !within_quote
       end
     end
-    puts @tokens
+    output_xml
+  end
+
+  def output_xml
+    xml = File.open(@filename + '_Tokens.xml', 'w') do |outfile|
+      outfile << "<tokens>\n"
+      @tokens.each do |token|
+        outfile << "<#{token[:type]}> #{token[:value].gsub('"','')} </#{token[:type]}>\n"
+      end
+      outfile << "</tokens>"
+    end
+    xml.close
   end
 
   def tokenize!(token_str)
@@ -64,15 +87,51 @@ class JackTokenizer
       }
     else
       if contains_symbols(token_str)
-        # Split on the first found instance of a known symbol.
-        # Process the string up to the first known symbol,
-        # call tokenize on the rest
-        if (token_str[-1] == ';')
-
+        if (%w(, ;).include? token_str[-1])
           tokenize!(token_str[0..-2])
           tokenize!(token_str[-1])
+        elsif token_str[0] == '.'
+          tokenize!(token_str[0])
+          tokenize!(token_str[1..-1])
+        else
+          if(/\..+\(.*\)$/.match(token_str))
+            dot_position = token_str.index('.')
+            token1 = token_str[0...dot_position]
+            rest = token_str[dot_position..-1]
+            tokenize!(token1)
+            tokenize!(rest)
+          elsif(/\(\)$/.match(token_str))
+            tokenize!(token_str[0..-3])
+            tokenize!(token_str[-2])
+            tokenize!(token_str[-1])
+          elsif(/^\(.*\)$/.match(token_str))
+            tokenize!(token_str[0])
+            tokenize!(token_str[1..-2])
+            tokenize!(token_str[-1])
+          elsif(/\[.*\]$/.match(token_str))
+            left_bracket_position = token_str.index('[')
+            tokenize!(token_str[0...left_bracket_position])
+            tokenize!(token_str[(left_bracket_position)...-1])
+            tokenize!(token_str[-1])
+          elsif(@@symbols.include?(token_str[0]))
+            tokenize!(token_str[0])
+            tokenize!(token_str[1..-1])
+          elsif(@@symbols.include?(token_str[-1]))
+            tokenize!(token_str[0...-1])
+            tokenize!(token_str[-1])
+          elsif(token_str.index('.'))
+            dot_position = token_str.index('.')
+            tokenize! token_str[0...dot_position]
+            tokenize! token_str[dot_position..-1]
+          elsif(token_str.index('('))
+            paren_position = token_str.index('(')
+            tokenize! token_str[0...paren_position]
+            tokenize! token_str[paren_position]
+            tokenize! token_str[paren_position+1..-1]
+          else
+             puts "UNHANDLED!: #{token_str} "
+          end
         end
-        # puts token_str
       else
         if is_number?(token_str)
           token = {
