@@ -13,7 +13,7 @@ class JackTokenizer
     return: "return", true: "true", false: "false", null: "null",
     this: "this" }
 
-  attr_reader :xml
+  attr_reader :tokens
 
   def initialize(file)
     @tokens = []
@@ -73,7 +73,7 @@ class JackTokenizer
     end
     @xml << "</tokens>"
 
-    File.open(@filename + '_Tokens.xml', 'w') do |outfile|
+    File.open(@filename + '_T.xml', 'w') do |outfile|
       outfile << @xml
     end
   end
@@ -170,62 +170,193 @@ class JackTokenizer
 end
 
 class CompilationEngine
-  def initialize(file)
+  @@non_terminals = %w(class classVarDec subroutineDec parameterList
+    subroutineBody varDec statements whileStatement ifStatement
+    returnStatement letStatement doStatement expression term expressionList)
+  @@terminals = {
+    keyword: "keyword", symbol: "symbol", identifier: "identifier",
+    int: "integerConstant", str: "stringConstant" }
+  @@ops = %w(+ - * / & | < > =)
+  @@unaryOps = %w(- ~)
+  @@keywordConstants = %w(true false null this)
+
+  def initialize(tokenizer)
+    @tokens = tokenizer.tokens
+    @parse_tree = ""
+    @token_idx = 0
+    compile_class
+  end
+
+  def node
+    { type: nil, value:[] }
+  end
+
+  def current_token
+    @tokens[@token_idx]
+  end
+
+  def advance
+    @token_idx += 1
   end
 
   def compile_class
+    # 'class' className '{' classVarDec* subroutineDec* '}'
+    class_node = node
+    class_node[:type] = 'class'
 
+    3.times do
+      class_node[:value] << current_token
+      advance
+    end
+
+    while ["static", "field"].include? current_token[:value]
+      class_node[:value] << compile_class_var_dec
+    end
+
+    while ["constructor", "function","method"].include? current_token[:value]
+      class_node[:value] << compile_subroutine
+    end
+
+    print_node(class_node)
   end
 
   def compile_class_var_dec
+    # ('static' | 'field') type varName (',' varName)* ';'
+    class_var_dec_node = node
+    class_var_dec_node[:type] = 'classVarDec'
 
+    3.times do
+      class_var_dec_node[:value] << current_token
+      advance
+    end
+
+    while current_token[:value] == ','
+      2.times do
+        class_var_dec_node[:value] << current_token
+        advance
+      end
+    end
+
+    class_var_dec_node[:value] << current_token
+    advance
+    return class_var_dec_node
   end
 
   def compile_subroutine
+    # ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
+    subroutine_node = node
+    subroutine_node[:type] = 'subroutineDec'
 
+    4.times do
+      subroutine_node[:value] << current_token
+      advance
+    end
+
+    subroutine_node[:value] << compile_parameter_list
+
+    subroutine_node[:value] << current_token
+    advance
+
+    subroutine_node[:value] << compile_subroutine_body
+
+    return subroutine_node
+  end
+
+  def compile_subroutine_body
+    # '{' varDec* statements '}'
+    subroutine_body_node = node
+    subroutine_body_node[:type] = "subroutineBody"
+
+    return subroutine_body_node
   end
 
   def compile_parameter_list
+    # ((type varName)(',' type varName)*)?
+    parameter_list_node = node
+    parameter_list_node[:type] = 'parameterList'
 
+    if current_token[:type] == 'identifier'
+      2.times do
+        parameter_list_node[:value] << current_token
+        advance
+      end
+
+      while current_token[:value] == ","
+        3.times do
+          parameter_list_node[:value] << current_token
+          advance
+        end
+      end
+    end
+    return parameter_list_node
   end
 
   def compile_var_dec
+    # 'var' type varName (',' varName)* ';'
   end
 
   def compile_statements
-
-  end
-
-  def compile_do
+    # statement*
 
   end
 
   def compile_let
-
-  end
-
-  def compile_while
-
-  end
-
-  def compile_return
+    # 'let' varName ('[' expression ']')? '=' expression ';'
 
   end
 
   def compile_if
+    # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+  end
 
+  def compile_while
+    # 'while' '(' expression ')' '{' statements '}'
+  end
+
+  def compile_do
+    # 'do' subroutineCall ';'
+  end
+
+  def compile_return
+    # 'return' expression? ';'
   end
 
   def compile_expression
-
+    # term (op term)*
   end
 
   def compile_term
-
+    # integerConstant | stringConstant | keywordConstant | varName |
+    # varName '[' expression  ']' | subroutineCall | '(' expression ')' |
+    # unaryOp term
   end
 
   def compile_expression_list
+    # (expression (',' expression)*)?
+  end
 
+  def print_node(node, nesting=2)
+    child_indent = ""
+    root_indent = ""
+
+    nesting.times do
+      child_indent += ' '
+    end
+
+    (nesting - 2).times do
+      root_indent += ' '
+    end
+
+    puts "#{root_indent}<#{node[:type]}>"
+    node[:value].each do |val|
+      if val[:value].is_a? String
+        puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
+      else
+        print_node(val, nesting + 2)
+      end
+    end
+
+    puts "#{root_indent}</#{node[:type]}>"
   end
 end
 
