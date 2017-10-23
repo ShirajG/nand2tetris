@@ -326,9 +326,7 @@ class CompilationEngine
   end
 
   def compile_term
-    # integerConstant | stringConstant | keywordConstant | varName |
-    # varName '[' expression  ']' | subroutineCall | '(' expression ')' |
-    # unaryOp term
+    # integerConstant | stringConstant | keywordConstant | varName | varName '[' expression  ']' | subroutineCall | '(' expression ')' | unaryOp term
   end
 
   def compile_expression_list
