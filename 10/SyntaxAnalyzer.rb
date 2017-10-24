@@ -598,19 +598,19 @@ class CompilationEngine
     end
 
     @xml << "#{root_indent}<#{node[:type]}>\n"
-    puts "#{root_indent}<#{node[:type]}>"
+    # puts "#{root_indent}<#{node[:type]}>"
 
     node[:value].each do |val|
       if val[:value].is_a? String
         @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
-        puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
+        # puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
       else
         print_node(val, nesting + 2)
       end
     end
 
     @xml <<  "#{root_indent}</#{node[:type]}>\n"
-    puts "#{root_indent}</#{node[:type]}>"
+    # puts "#{root_indent}</#{node[:type]}>"
   end
 end
 
