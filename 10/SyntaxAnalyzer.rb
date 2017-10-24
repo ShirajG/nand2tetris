@@ -184,6 +184,7 @@ class CompilationEngine
     @tokens = tokenizer.tokens
     @parse_tree = ""
     @token_idx = 0
+    @xml = File.open('testing.xml', 'w')
     # puts @tokens
     compile_class
   end
@@ -451,7 +452,23 @@ class CompilationEngine
     do_node[:value] << current_token
     advance
 
-    do_node[:value] << compile_subroutine_call
+    if next_token[:value] == '.'
+      4.times do
+        do_node[:value] << current_token
+        advance
+      end
+      do_node[:value] << compile_expression_list
+      do_node[:value] << current_token
+      advance
+    else
+      2.times do
+        do_node[:value] << current_token
+        advance
+      end
+      do_node[:value] << compile_expression_list
+      do_node[:value] << current_token
+      advance
+    end
 
     do_node[:value] << current_token
     advance
@@ -493,32 +510,6 @@ class CompilationEngine
     return expression_node
   end
 
-  def compile_subroutine_call
-  # subroutineName '(' expressionList ')' |
-  # (className | varName) '.' subroutineName '(' expressionList ')'
-    subroutine_call_node = node
-    subroutine_call_node[:type] = 'subroutineCall'
-    if next_token[:value] == '.'
-      4.times do
-        subroutine_call_node[:value] << current_token
-        advance
-      end
-      subroutine_call_node[:value] << compile_expression_list
-      subroutine_call_node[:value] << current_token
-      advance
-    else
-      2.times do
-        subroutine_call_node[:value] << current_token
-        advance
-      end
-      subroutine_call_node[:value] << compile_expression_list
-      subroutine_call_node[:value] << current_token
-      advance
-    end
-
-    return subroutine_call_node
-  end
-
   def compile_term
     # integerConstant | stringConstant | keywordConstant | '(' expression ')' | unaryOp term | varName | varName '[' expression  ']' | subroutineCall
     term_node = node
@@ -538,7 +529,23 @@ class CompilationEngine
       term_node[:value] << compile_term
     elsif current_token[:type] == "identifier"
       if ['.', '('].include? next_token[:value]
-        term_node[:value] << compile_subroutine_call
+        if next_token[:value] == '.'
+          4.times do
+            term_node[:value] << current_token
+            advance
+          end
+          term_node[:value] << compile_expression_list
+          term_node[:value] << current_token
+          advance
+        else
+          2.times do
+            term_node[:value] << current_token
+            advance
+          end
+          term_node[:value] << compile_expression_list
+          term_node[:value] << current_token
+          advance
+        end
       elsif next_token[:value] == '['
         2.times do
           term_node[:value] << current_token
@@ -589,15 +596,19 @@ class CompilationEngine
       root_indent += ' '
     end
 
+    @xml << "#{root_indent}<#{node[:type]}>\n"
     puts "#{root_indent}<#{node[:type]}>"
+
     node[:value].each do |val|
       if val[:value].is_a? String
+        @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
         puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
       else
         print_node(val, nesting + 2)
       end
     end
 
+    @xml <<  "#{root_indent}</#{node[:type]}>\n"
     puts "#{root_indent}</#{node[:type]}>"
   end
 end
