@@ -13,7 +13,7 @@ class JackTokenizer
     return: "return", true: "true", false: "false", null: "null",
     this: "this" }
 
-  attr_reader :tokens
+  attr_reader :tokens, :filename
 
   def initialize(file)
     @tokens = []
@@ -176,15 +176,16 @@ class CompilationEngine
   @@terminals = {
     keyword: "keyword", symbol: "symbol", identifier: "identifier",
     int: "integerConstant", str: "stringConstant" }
-  @@ops = %w(+ - * / & | < > =)
+  @@ops = %w(+ - * / &amp; | &lt; &gt; =)
   @@unaryOps = %w(- ~)
   @@keywordConstants = %w(true false null this)
 
   def initialize(tokenizer)
     @tokens = tokenizer.tokens
+    @filename = tokenizer.filename
     @parse_tree = ""
     @token_idx = 0
-    @xml = File.open('testing.xml', 'w')
+    @xml = File.open(@filename + '_Tree.xml', 'w')
     # puts @tokens
     compile_class
   end
