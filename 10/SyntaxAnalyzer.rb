@@ -222,6 +222,9 @@ class CompilationEngine
       class_node[:value] << compile_subroutine
     end
 
+    class_node[:value] << current_token
+    advance
+
     print_node(class_node)
   end
 
@@ -448,7 +451,7 @@ class CompilationEngine
     do_node[:value] << current_token
     advance
 
-    do_node << compile_subroutine_call
+    do_node[:value] << compile_subroutine_call
 
     do_node[:value] << current_token
     advance
@@ -495,6 +498,23 @@ class CompilationEngine
   # (className | varName) '.' subroutineName '(' expressionList ')'
     subroutine_call_node = node
     subroutine_call_node[:type] = 'subroutineCall'
+    if next_token[:value] == '.'
+      4.times do
+        subroutine_call_node[:value] << current_token
+        advance
+      end
+      subroutine_call_node[:value] << compile_expression_list
+      subroutine_call_node[:value] << current_token
+      advance
+    else
+      2.times do
+        subroutine_call_node[:value] << current_token
+        advance
+      end
+      subroutine_call_node[:value] << compile_expression_list
+      subroutine_call_node[:value] << current_token
+      advance
+    end
 
     return subroutine_call_node
   end
