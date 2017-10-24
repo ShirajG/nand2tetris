@@ -561,7 +561,20 @@ class CompilationEngine
     expression_list_node = node
     expression_list_node[:type] = 'expressionList'
 
+    if is_term?(current_token)
+      expression_list_node[:value] << compile_expression
+      while current_token[:value] == ','
+        expression_list_node[:value] << current_token
+        advance
+        expression_list_node[:value] << compile_expression
+      end
+    end
+
     return expression_list_node
+  end
+
+  def is_term?(token)
+    (%w(identifier integerConstant stringConstant keyword).include? token[:type]) || (token[:value] == '(') || (@@unaryOps.include? token[:value])
   end
 
   def print_node(node, nesting=2)
