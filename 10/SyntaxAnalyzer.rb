@@ -267,6 +267,10 @@ class CompilationEngine
     subroutine_body_node = node
     subroutine_body_node[:type] = "subroutineBody"
 
+    while current_token[:value] == 'var'
+      subroutine_body_node[:value] << compile_var_dec
+    end
+
     return subroutine_body_node
   end
 
@@ -293,6 +297,24 @@ class CompilationEngine
 
   def compile_var_dec
     # 'var' type varName (',' varName)* ';'
+    var_dec_node = node
+    var_dec_node[:type] = 'varDec'
+    3.times do
+      var_dec_node[:value] << current_token
+      advance
+    end
+
+    while current_token[:value] == ','
+      2.times do
+        var_dec_node[:value] << current_token
+        advance
+      end
+    end
+
+    var_dec_node << current_token
+    advance
+
+    return var_dec_node
   end
 
   def compile_statements
