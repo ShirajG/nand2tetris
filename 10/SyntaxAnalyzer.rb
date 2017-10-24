@@ -184,6 +184,7 @@ class CompilationEngine
     @tokens = tokenizer.tokens
     @parse_tree = ""
     @token_idx = 0
+    # puts @tokens
     compile_class
   end
 
@@ -193,6 +194,10 @@ class CompilationEngine
 
   def current_token
     @tokens[@token_idx]
+  end
+
+  def next_token
+    @tokens[@token_idx + 1]
   end
 
   def advance
@@ -267,9 +272,17 @@ class CompilationEngine
     subroutine_body_node = node
     subroutine_body_node[:type] = "subroutineBody"
 
+    subroutine_body_node[:value] << current_token
+    advance
+
     while current_token[:value] == 'var'
       subroutine_body_node[:value] << compile_var_dec
     end
+
+    subroutine_body_node[:value] << compile_statements
+
+    subroutine_body_node[:value] << current_token
+    advance
 
     return subroutine_body_node
   end
@@ -279,7 +292,7 @@ class CompilationEngine
     parameter_list_node = node
     parameter_list_node[:type] = 'parameterList'
 
-    if current_token[:type] == 'identifier'
+    if %w(identifier keyword).include? current_token[:type]
       2.times do
         parameter_list_node[:value] << current_token
         advance
@@ -311,7 +324,7 @@ class CompilationEngine
       end
     end
 
-    var_dec_node << current_token
+    var_dec_node[:value] << current_token
     advance
 
     return var_dec_node
@@ -319,40 +332,216 @@ class CompilationEngine
 
   def compile_statements
     # statement*
+    statements_node = node
+    statements_node[:type] = 'statements'
+    while %w(while let if do return).include? current_token[:value]
+      case current_token[:value]
+      when 'while'
+        statements_node[:value] << compile_while
+      when 'let'
+        statements_node[:value] << compile_let
+      when 'if'
+        statements_node[:value] << compile_if
+      when 'do'
+        statements_node[:value] << compile_do
+      when 'return'
+        statements_node[:value] << compile_return
+      end
+    end
 
+    return statements_node
   end
 
   def compile_let
     # 'let' varName ('[' expression ']')? '=' expression ';'
+    let_node = node
+    let_node[:type] = 'letStatement'
+    2.times do
+      let_node[:value] << current_token
+      advance
+    end
 
+    if current_token[:value] == '['
+      let_node[:value] << current_token
+      advance
+      let_node[:value] << compile_expression
+      let_node[:value] << current_token
+      advance
+    end
+
+    let_node[:value] << current_token
+    advance
+
+    let_node[:value] << compile_expression
+    let_node[:value] << current_token
+    advance
+    return let_node
   end
 
   def compile_if
     # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+    if_node = node
+    if_node[:type] = 'ifStatement'
+
+    2.times do
+      if_node[:value] << current_token
+      advance
+    end
+
+    if_node[:value] << compile_expression
+
+    2.times do
+      if_node[:value] << current_token
+      advance
+    end
+
+    if_node[:value] << compile_statements
+
+    if_node[:value] << current_token
+    advance
+
+    if current_token[:value] == 'else'
+      2.times do
+        if_node[:value] << current_token
+        advance
+      end
+
+      if_node[:value] << compile_statements
+
+      if_node[:value] << current_token
+      advance
+    end
+
+    return if_node
   end
 
   def compile_while
     # 'while' '(' expression ')' '{' statements '}'
+    while_node = node
+    while_node[:type] = 'whileStatement'
+
+    2.times do
+      while_node[:value] << current_token
+      advance
+    end
+
+    while_node[:value] << compile_expression
+
+    2.times do
+      while_node[:value] << current_token
+      advance
+    end
+
+    while_node[:value] << compile_statements
+
+    while_node[:value] << current_token
+    advance
+
+    return while_node
   end
 
   def compile_do
     # 'do' subroutineCall ';'
+    do_node = node
+    do_node[:type] = 'doStatement'
+
+    do_node[:value] << current_token
+    advance
+
+    do_node << compile_subroutine_call
+
+    do_node[:value] << current_token
+    advance
+
+    return do_node
   end
 
   def compile_return
     # 'return' expression? ';'
+    return_node = node
+    return_node[:type] = 'returnStatement'
+
+    return_node[:value] << current_token
+    advance
+
+    if(current_token[:value] != ';')
+      return_node[:value] << compile_expression
+    end
+
+    return_node[:value] << current_token
+    advance
+
+    return return_node
   end
 
   def compile_expression
     # term (op term)*
+    expression_node = node
+    expression_node[:type] = 'expression'
+
+    expression_node[:value] << compile_term
+
+    while @@ops.include? current_token[:value]
+      expression_node[:value] << current_token
+      advance
+      expression_node[:value] << compile_term
+    end
+
+    return expression_node
+  end
+
+  def compile_subroutine_call
+  # subroutineName '(' expressionList ')' |
+  # (className | varName) '.' subroutineName '(' expressionList ')'
+    subroutine_call_node = node
+    subroutine_call_node[:type] = 'subroutineCall'
+
+    return subroutine_call_node
   end
 
   def compile_term
-    # integerConstant | stringConstant | keywordConstant | varName | varName '[' expression  ']' | subroutineCall | '(' expression ')' | unaryOp term
+    # integerConstant | stringConstant | keywordConstant | '(' expression ')' | unaryOp term | varName | varName '[' expression  ']' | subroutineCall
+    term_node = node
+    term_node[:type] = 'term'
+    if %w(integerConstant stringConstant keyword).include? current_token[:type]
+      term_node[:value] << current_token
+      advance
+    elsif current_token[:value] == '('
+      term_node[:value] << current_token
+      advance
+      term_node[:value] << compile_expression
+      term_node[:value] << current_token
+      advance
+    elsif @@unaryOps.include? current_token[:value]
+      term_node[:value] << current_token
+      advance
+      term_node[:value] << compile_term
+    elsif current_token[:type] == "identifier"
+      if ['.', '('].include? next_token[:value]
+        term_node[:value] << compile_subroutine_call
+      elsif next_token[:value] == '['
+        2.times do
+          term_node[:value] << current_token
+          advance
+        end
+        term_node[:value] << compile_expression
+        term_node[:value] << current_token
+        advance
+      else
+        term_node[:value] << current_token
+        advance
+      end
+    end
+
+    return term_node
   end
 
   def compile_expression_list
     # (expression (',' expression)*)?
+    expression_list_node = node
+    expression_list_node[:type] = 'expressionList'
+
+    return expression_list_node
   end
 
   def print_node(node, nesting=2)
