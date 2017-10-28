@@ -1,4 +1,4 @@
-# require 'byebug'
+require 'byebug'
 class JackTokenizer
   @@symbols = %w({ } ( ) [ ] . , ; + - * / & | < > = ~)
   @@token_types = {
@@ -197,8 +197,74 @@ class CompilationEngine
   end
 
   def advance(node)
-    node[:value] << current_token
+    if current_token[:type] == 'identifier'
+      node[:value] << parse_identifier
+    else
+      node[:value] << current_token
+    end
+
     @token_idx += 1
+  end
+
+  def parse_identifier
+    current_token[:declaration?] = false
+    prev_token = @tokens[@token_idx - 1]
+    prev_prev_token = @tokens[@token_idx -2]
+    # Class if starts with a capital letter
+    if current_token[:value][0].upcase == current_token[:value][0]
+      current_token[:category] = "class"
+      if prev_token[:value] == "class"
+        current_token[:declaration?] = true
+      end
+    # subroutine if preceeded by a dot or 'void'
+    elsif %w(. void).include? prev_token[:value]
+      current_token[:category] = "subroutine"
+      if prev_token[:value] == 'void'
+        current_token[:declaration?] = true
+      end
+    # let is assignment to a var, not sure what scope
+    elsif prev_token[:value] == 'let'
+      current_token[:category] = "?????"
+    # part of an expression
+    elsif %w(+ - = / * | ~).include? prev_token[:value]
+      current_token[:category] = "?????"
+    # Must be a declaration if Class is specified
+    elsif prev_token[:category] == "class"
+      if %w(method function constructor).include? prev_prev_token[:value]
+        current_token[:category] = "subroutine"
+      else
+        current_token[:category] = "var"
+      end
+      current_token[:declaration?] = true
+    elsif %w(int char boolean).include? prev_token[:value]
+      case prev_prev_token[:value]
+      when 'static'
+        current_token[:category] = "static"
+      when 'field'
+        current_token[:category] = "field"
+      when '('
+        current_token[:category] = "argument"
+      else
+        current_token[:category] = "var"
+      end
+      current_token[:declaration?] = true
+    elsif prev_token[:value] == ','
+      current_token[:category] = prev_prev_token[:category]
+      current_token[:declaration?] = prev_prev_token[:declaration?]
+    elsif prev_token[:value] == 'do'
+      current_token[:category] = 'subroutine'
+    elsif prev_token[:value] == '('
+      current_token[:category] == '?????'
+    else
+      puts '========================'
+      puts '<<<<<<<<<<<<<<<<<<<<<<<<'
+      puts prev_prev_token
+      puts prev_token
+      puts '>>>>>>>>>>>>>>>>>>>>>>>>'
+      puts current_token
+    end
+    puts current_token
+    current_token
   end
 
   def compile_class
@@ -363,29 +429,24 @@ class CompilationEngine
 
     2.times do
       advance if_node
-
     end
 
     if_node[:value] << compile_expression
 
     2.times do
       advance if_node
-
     end
 
     if_node[:value] << compile_statements
-
     advance if_node
 
 
     if current_token[:value] == 'else'
       2.times do
         advance if_node
-
       end
 
       if_node[:value] << compile_statements
-
       advance if_node
 
     end
@@ -400,21 +461,17 @@ class CompilationEngine
 
     2.times do
       advance while_node
-
     end
 
     while_node[:value] << compile_expression
 
     2.times do
       advance while_node
-
     end
 
     while_node[:value] << compile_statements
 
     advance while_node
-
-
     return while_node
   end
 
@@ -422,26 +479,22 @@ class CompilationEngine
     # 'do' subroutineCall ';'
     do_node = node
     do_node[:type] = 'doStatement'
-
     advance do_node
-
 
     if next_token[:value] == '.'
       4.times do
         advance do_node
-
       end
+
       do_node[:value] << compile_expression_list
       advance do_node
-
     else
       2.times do
         advance do_node
-
       end
+
       do_node[:value] << compile_expression_list
       advance do_node
-
     end
 
     advance do_node
@@ -506,19 +559,18 @@ class CompilationEngine
         if next_token[:value] == '.'
           4.times do
             advance term_node
-
           end
+
           term_node[:value] << compile_expression_list
           advance term_node
 
         else
           2.times do
             advance term_node
-
           end
+
           term_node[:value] << compile_expression_list
           advance term_node
-
         end
       elsif next_token[:value] == '['
         2.times do
@@ -530,7 +582,6 @@ class CompilationEngine
 
       else
         advance term_node
-
       end
     end
 
@@ -570,20 +621,20 @@ class CompilationEngine
       root_indent += ' '
     end
 
-    # @xml << "#{root_indent}<#{node[:type]}>\n"
-    puts "#{root_indent}<#{node[:type]}>"
+    @xml << "#{root_indent}<#{node[:type]}>\n"
+    # puts "#{root_indent}<#{node[:type]}>"
 
     node[:value].each do |val|
       if val[:value].is_a? String
-        # @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
-        puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
+        @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
+        # puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
       else
         print_node(val, nesting + 2)
       end
     end
 
-    # @xml <<  "#{root_indent}</#{node[:type]}>\n"
-    puts "#{root_indent}</#{node[:type]}>"
+    @xml <<  "#{root_indent}</#{node[:type]}>\n"
+    # puts "#{root_indent}</#{node[:type]}>"
   end
 end
 
