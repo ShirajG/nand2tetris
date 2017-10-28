@@ -1,4 +1,4 @@
-require 'byebug'
+# require 'byebug'
 class JackTokenizer
   @@symbols = %w({ } ( ) [ ] . , ; + - * / & | < > = ~)
   @@token_types = {
@@ -181,6 +181,7 @@ class CompilationEngine
     @xml = File.open(@filename + '.xml', 'w')
     # puts @tokens
     @analyzed_file = compile_class
+    print_node @analyzed_file
   end
 
   def node
@@ -195,7 +196,8 @@ class CompilationEngine
     @tokens[@token_idx + 1]
   end
 
-  def advance
+  def advance(node)
+    node[:value] << current_token
     @token_idx += 1
   end
 
@@ -205,8 +207,7 @@ class CompilationEngine
     class_node[:type] = 'class'
 
     3.times do
-      class_node[:value] << current_token
-      advance
+      advance class_node
     end
 
     while ["static", "field"].include? current_token[:value]
@@ -227,19 +228,16 @@ class CompilationEngine
     class_var_dec_node[:type] = 'classVarDec'
 
     3.times do
-      class_var_dec_node[:value] << current_token
-      advance
+      advance class_var_dec_node
     end
 
     while current_token[:value] == ','
       2.times do
-        class_var_dec_node[:value] << current_token
-        advance
+        advance class_var_dec_node
       end
     end
 
-    class_var_dec_node[:value] << current_token
-    advance
+    advance class_var_dec_node
     return class_var_dec_node
   end
 
@@ -249,17 +247,13 @@ class CompilationEngine
     subroutine_node[:type] = 'subroutineDec'
 
     4.times do
-      subroutine_node[:value] << current_token
-      advance
+      advance subroutine_node
     end
 
     subroutine_node[:value] << compile_parameter_list
 
-    subroutine_node[:value] << current_token
-    advance
-
+    advance subroutine_node
     subroutine_node[:value] << compile_subroutine_body
-
     return subroutine_node
   end
 
@@ -268,8 +262,8 @@ class CompilationEngine
     subroutine_body_node = node
     subroutine_body_node[:type] = "subroutineBody"
 
-    subroutine_body_node[:value] << current_token
-    advance
+    advance subroutine_body_node
+
 
     while current_token[:value] == 'var'
       subroutine_body_node[:value] << compile_var_dec
@@ -277,9 +271,7 @@ class CompilationEngine
 
     subroutine_body_node[:value] << compile_statements
 
-    subroutine_body_node[:value] << current_token
-    advance
-
+    advance subroutine_body_node
     return subroutine_body_node
   end
 
@@ -290,14 +282,12 @@ class CompilationEngine
 
     if %w(identifier keyword).include? current_token[:type]
       2.times do
-        parameter_list_node[:value] << current_token
-        advance
+        advance parameter_list_node
       end
 
       while current_token[:value] == ","
         3.times do
-          parameter_list_node[:value] << current_token
-          advance
+          advance parameter_list_node
         end
       end
     end
@@ -309,20 +299,16 @@ class CompilationEngine
     var_dec_node = node
     var_dec_node[:type] = 'varDec'
     3.times do
-      var_dec_node[:value] << current_token
-      advance
+      advance var_dec_node
     end
 
     while current_token[:value] == ','
       2.times do
-        var_dec_node[:value] << current_token
-        advance
+        advance var_dec_node
       end
     end
 
-    var_dec_node[:value] << current_token
-    advance
-
+    advance var_dec_node
     return var_dec_node
   end
 
@@ -353,24 +339,20 @@ class CompilationEngine
     let_node = node
     let_node[:type] = 'letStatement'
     2.times do
-      let_node[:value] << current_token
-      advance
+      advance let_node
     end
 
     if current_token[:value] == '['
-      let_node[:value] << current_token
-      advance
+      advance let_node
       let_node[:value] << compile_expression
-      let_node[:value] << current_token
-      advance
+      advance let_node
     end
 
-    let_node[:value] << current_token
-    advance
+    advance let_node
 
     let_node[:value] << compile_expression
-    let_node[:value] << current_token
-    advance
+    advance let_node
+
     return let_node
   end
 
@@ -380,32 +362,32 @@ class CompilationEngine
     if_node[:type] = 'ifStatement'
 
     2.times do
-      if_node[:value] << current_token
-      advance
+      advance if_node
+
     end
 
     if_node[:value] << compile_expression
 
     2.times do
-      if_node[:value] << current_token
-      advance
+      advance if_node
+
     end
 
     if_node[:value] << compile_statements
 
-    if_node[:value] << current_token
-    advance
+    advance if_node
+
 
     if current_token[:value] == 'else'
       2.times do
-        if_node[:value] << current_token
-        advance
+        advance if_node
+
       end
 
       if_node[:value] << compile_statements
 
-      if_node[:value] << current_token
-      advance
+      advance if_node
+
     end
 
     return if_node
@@ -417,21 +399,21 @@ class CompilationEngine
     while_node[:type] = 'whileStatement'
 
     2.times do
-      while_node[:value] << current_token
-      advance
+      advance while_node
+
     end
 
     while_node[:value] << compile_expression
 
     2.times do
-      while_node[:value] << current_token
-      advance
+      advance while_node
+
     end
 
     while_node[:value] << compile_statements
 
-    while_node[:value] << current_token
-    advance
+    advance while_node
+
 
     return while_node
   end
@@ -441,29 +423,29 @@ class CompilationEngine
     do_node = node
     do_node[:type] = 'doStatement'
 
-    do_node[:value] << current_token
-    advance
+    advance do_node
+
 
     if next_token[:value] == '.'
       4.times do
-        do_node[:value] << current_token
-        advance
+        advance do_node
+
       end
       do_node[:value] << compile_expression_list
-      do_node[:value] << current_token
-      advance
+      advance do_node
+
     else
       2.times do
-        do_node[:value] << current_token
-        advance
+        advance do_node
+
       end
       do_node[:value] << compile_expression_list
-      do_node[:value] << current_token
-      advance
+      advance do_node
+
     end
 
-    do_node[:value] << current_token
-    advance
+    advance do_node
+
 
     return do_node
   end
@@ -473,15 +455,15 @@ class CompilationEngine
     return_node = node
     return_node[:type] = 'returnStatement'
 
-    return_node[:value] << current_token
-    advance
+    advance return_node
+
 
     if(current_token[:value] != ';')
       return_node[:value] << compile_expression
     end
 
-    return_node[:value] << current_token
-    advance
+    advance return_node
+
 
     return return_node
   end
@@ -494,8 +476,8 @@ class CompilationEngine
     expression_node[:value] << compile_term
 
     while @@ops.include? current_token[:value]
-      expression_node[:value] << current_token
-      advance
+      advance expression_node
+
       expression_node[:value] << compile_term
     end
 
@@ -507,48 +489,48 @@ class CompilationEngine
     term_node = node
     term_node[:type] = 'term'
     if %w(integerConstant stringConstant keyword).include? current_token[:type]
-      term_node[:value] << current_token
-      advance
+      advance term_node
+
     elsif current_token[:value] == '('
-      term_node[:value] << current_token
-      advance
+      advance term_node
+
       term_node[:value] << compile_expression
-      term_node[:value] << current_token
-      advance
+      advance term_node
+
     elsif @@unaryOps.include? current_token[:value]
-      term_node[:value] << current_token
-      advance
+      advance term_node
+
       term_node[:value] << compile_term
     elsif current_token[:type] == "identifier"
       if ['.', '('].include? next_token[:value]
         if next_token[:value] == '.'
           4.times do
-            term_node[:value] << current_token
-            advance
+            advance term_node
+
           end
           term_node[:value] << compile_expression_list
-          term_node[:value] << current_token
-          advance
+          advance term_node
+
         else
           2.times do
-            term_node[:value] << current_token
-            advance
+            advance term_node
+
           end
           term_node[:value] << compile_expression_list
-          term_node[:value] << current_token
-          advance
+          advance term_node
+
         end
       elsif next_token[:value] == '['
         2.times do
-          term_node[:value] << current_token
-          advance
+          advance term_node
+
         end
         term_node[:value] << compile_expression
-        term_node[:value] << current_token
-        advance
+        advance term_node
+
       else
-        term_node[:value] << current_token
-        advance
+        advance term_node
+
       end
     end
 
@@ -563,8 +545,8 @@ class CompilationEngine
     if is_term?(current_token)
       expression_list_node[:value] << compile_expression
       while current_token[:value] == ','
-        expression_list_node[:value] << current_token
-        advance
+        advance expression_list_node
+
         expression_list_node[:value] << compile_expression
       end
     end
@@ -588,20 +570,20 @@ class CompilationEngine
       root_indent += ' '
     end
 
-    @xml << "#{root_indent}<#{node[:type]}>\n"
-    # puts "#{root_indent}<#{node[:type]}>"
+    # @xml << "#{root_indent}<#{node[:type]}>\n"
+    puts "#{root_indent}<#{node[:type]}>"
 
     node[:value].each do |val|
       if val[:value].is_a? String
-        @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
-        # puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
+        # @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
+        puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
       else
         print_node(val, nesting + 2)
       end
     end
 
-    @xml <<  "#{root_indent}</#{node[:type]}>\n"
-    # puts "#{root_indent}</#{node[:type]}>"
+    # @xml <<  "#{root_indent}</#{node[:type]}>\n"
+    puts "#{root_indent}</#{node[:type]}>"
   end
 end
 
@@ -631,19 +613,61 @@ class SymbolTable
 end
 
 class VMWriter
+  def initialize(args)
+    @outfile = nil
+  end
+
+  def write_push(*args)
+
+  end
+
+  def write_pop(*args)
+
+  end
+
+  def write_arithmetic(*args)
+
+  end
+
+  def write_label(*args)
+
+  end
+
+  def write_goto(*args)
+
+  end
+
+  def write_if(*args)
+
+  end
+
+  def write_call(*args)
+
+  end
+
+  def write_function(*args)
+
+  end
+
+  def write_return(*args)
+
+  end
+
+  def close
+    @outfile.close
+  end
 end
 
 class JackCompiler
   def initialize
     if File.file?(ARGV[0])
-      puts CompilationEngine.new(JackTokenizer.new(ARGV[0])).analyzed_file
+      CompilationEngine.new(JackTokenizer.new(ARGV[0])).analyzed_file
     end
 
     if File.directory?(ARGV[0])
       files = Dir[ARGV[0] + "/*.jack"]
       files.each do |file|
-        analyzed = CompilationEngine.new(JackTokenizer.new(file)).analyzed_file
-        puts analyzed
+        CompilationEngine.new(JackTokenizer.new(file)).analyzed_file
       end
     end
   end
