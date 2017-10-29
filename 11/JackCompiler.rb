@@ -16,12 +16,12 @@ class SymbolTable
   end
 
   def start_subroutine
+    puts @subroutine_table
     @subroutine_table = []
     @current_table = @subroutine_table
   end
 
   def define(token)
-    # puts "Value: #{token[:value]},  Category: #{token[:category]}"
     case token[:category]
     when 'class'
       @class_table = []
@@ -252,7 +252,7 @@ class CompilationEngine
     @symbol_table = SymbolTable.new()
     @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
-    @symbol_table.print
+    # @symbol_table.print
     # print_node @analyzed_file
   end
 
@@ -281,7 +281,7 @@ class CompilationEngine
   def parse_identifier
     current_token[:declaration?] = false
     prev_token = @tokens[@token_idx - 1]
-    prev_prev_token = @tokens[@token_idx -2]
+    prev_prev_token = @tokens[@token_idx - 2]
     # Class if starts with a capital letter
     if current_token[:value][0].upcase == current_token[:value][0]
       current_token[:category] = "class"
@@ -306,10 +306,13 @@ class CompilationEngine
     elsif prev_token[:category] == "class"
       if %w(method function constructor).include? prev_prev_token[:value]
         current_token[:category] = "subroutine"
+      elsif %(static field).include? prev_prev_token[:value]
+        current_token[:category] = prev_prev_token[:value]
       else
         current_token[:category] = "var"
       end
       current_token[:declaration?] = true
+      current_token[:type] = prev_token[:value]
       @symbol_table.define(current_token)
     elsif %w(int char boolean).include? prev_token[:value]
       case prev_prev_token[:value]
@@ -322,12 +325,14 @@ class CompilationEngine
       else
         current_token[:category] = "var"
       end
+      current_token[:type] = prev_token[:value]
       current_token[:declaration?] = true
       @symbol_table.define(current_token)
     elsif prev_token[:value] == ','
       current_token[:category] = prev_prev_token[:category]
       current_token[:declaration?] = prev_prev_token[:declaration?]
       if current_token[:declaration?]
+        current_token[:type] = prev_prev_token[:type]
         @symbol_table.define(current_token)
       end
     elsif prev_token[:value] == 'do'
@@ -335,14 +340,13 @@ class CompilationEngine
     elsif prev_token[:value] == '('
       current_token[:category] == '?????'
     else
-      puts '========================'
-      puts '<<<<<<<<<<<<<<<<<<<<<<<<'
-      puts prev_prev_token
+      puts '-------------------------------'
+      puts "UNHANDLED"
       puts prev_token
-      puts '>>>>>>>>>>>>>>>>>>>>>>>>'
       puts current_token
+      puts '-------------------------------'
     end
-    # puts current_token
+    puts current_token if current_token[:declaration?]
     current_token
   end
 
