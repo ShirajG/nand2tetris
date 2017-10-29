@@ -1,8 +1,9 @@
-require 'byebug'
+# require 'byebug'
 class SymbolTable
+  attr_reader :current_table, :class_table
   def initialize
-    @class_table = []
-    @subroutine_table = []
+    @class_table = {}
+    @subroutine_table = {}
     @current_table = @class_table
     @static_index = 0
     @field_index = 0
@@ -16,27 +17,24 @@ class SymbolTable
   end
 
   def start_subroutine
-    puts @subroutine_table
-    @subroutine_table = []
+    @subroutine_table = {}
     @current_table = @subroutine_table
   end
 
   def define(token)
     case token[:category]
     when 'class'
-      @class_table = []
+      @class_table = {}
       @current_table = @class_table
     when 'field'
-      @current_table << {
-        name: token[:value],
+      @current_table[token[:value]] = {
         type: token[:type],
         kind: token[:category],
         num: @field_index
       }
       @field_index += 1
     when 'static'
-      @current_table << {
-        name: token[:value],
+      @current_table[token[:value]] = {
         type: token[:type],
         kind: token[:category],
         num: @static_index
@@ -45,8 +43,7 @@ class SymbolTable
     when 'subroutine'
       start_subroutine
     when 'var'
-      @current_table << {
-        name: token[:value],
+      @current_table[token[:value]] = {
         type: token[:type],
         kind: token[:category],
         num: @local_index
@@ -61,12 +58,15 @@ class SymbolTable
   end
 
   def kind_of(token)
+    lookup(token)[:kind]
   end
 
   def type_of(token)
+    lookup(token)[:type]
   end
 
   def index_of(token)
+    lookup(token)[:num]
   end
 end
 
@@ -269,86 +269,109 @@ class CompilationEngine
   end
 
   def advance(node)
-    if current_token[:type] == 'identifier'
-      node[:value] << parse_identifier
-    else
+    # if current_token[:type] == 'identifier'
+      # node[:value] << parse_identifier
+    # else
       node[:value] << current_token
-    end
-
+    # end
     @token_idx += 1
   end
 
-  def parse_identifier
-    current_token[:declaration?] = false
-    prev_token = @tokens[@token_idx - 1]
-    prev_prev_token = @tokens[@token_idx - 2]
-    # Class if starts with a capital letter
-    if current_token[:value][0].upcase == current_token[:value][0]
-      current_token[:category] = "class"
-      if prev_token[:value] == "class"
-        current_token[:declaration?] = true
-        @symbol_table.define(current_token)
-      end
-    # subroutine if preceeded by a dot or 'void'
-    elsif %w(. void).include? prev_token[:value]
-      current_token[:category] = "subroutine"
-      if prev_token[:value] == 'void'
-        current_token[:declaration?] = true
-        @symbol_table.define(current_token)
-      end
-    # let is assignment to a var, not sure what scope
-    elsif prev_token[:value] == 'let'
-      current_token[:category] = "?????"
-    # part of an expression
-    elsif %w(+ - = / * | ~).include? prev_token[:value]
-      current_token[:category] = "?????"
-    # Must be a declaration if Class is specified
-    elsif prev_token[:category] == "class"
-      if %w(method function constructor).include? prev_prev_token[:value]
-        current_token[:category] = "subroutine"
-      elsif %(static field).include? prev_prev_token[:value]
-        current_token[:category] = prev_prev_token[:value]
-      else
-        current_token[:category] = "var"
-      end
-      current_token[:declaration?] = true
-      current_token[:type] = prev_token[:value]
-      @symbol_table.define(current_token)
-    elsif %w(int char boolean).include? prev_token[:value]
-      case prev_prev_token[:value]
-      when 'static'
-        current_token[:category] = "static"
-      when 'field'
-        current_token[:category] = "field"
-      when '('
-        current_token[:category] = "argument"
-      else
-        current_token[:category] = "var"
-      end
-      current_token[:type] = prev_token[:value]
-      current_token[:declaration?] = true
-      @symbol_table.define(current_token)
-    elsif prev_token[:value] == ','
-      current_token[:category] = prev_prev_token[:category]
-      current_token[:declaration?] = prev_prev_token[:declaration?]
-      if current_token[:declaration?]
-        current_token[:type] = prev_prev_token[:type]
-        @symbol_table.define(current_token)
-      end
-    elsif prev_token[:value] == 'do'
-      current_token[:category] = 'subroutine'
-    elsif prev_token[:value] == '('
-      current_token[:category] == '?????'
+  def lookup(token)
+    if @symbol_table.current_table[token[:value]]
+      token[:type] = @symbol_table.current_table[token[:value]][:type]
+      token[:num] = @symbol_table.current_table[token[:value]][:num]
+      token[:category] = @symbol_table.current_table[token[:value]][:category]
+    elsif @symbol_table.class_table[token[:value]]
+      token[:type] = @symbol_table.class_table[token[:value]][:type]
+      token[:num] = @symbol_table.class_table[token[:value]][:num]
+      token[:category] = @symbol_table.class_table[token[:value]][:category]
     else
-      puts '-------------------------------'
-      puts "UNHANDLED"
-      puts prev_token
       puts current_token
-      puts '-------------------------------'
+      puts "lookup error"
     end
-    puts current_token if current_token[:declaration?]
-    current_token
+    token
   end
+
+  # def parse_identifier
+  #   current_token[:declaration?] = false
+  #   prev_token = @tokens[@token_idx - 1]
+  #   prev_prev_token = @tokens[@token_idx - 2]
+  #   # Class if starts with a capital letter
+  #   if current_token[:value][0].upcase == current_token[:value][0]
+  #     current_token[:category] = "class"
+  #     if prev_token[:value] == "class"
+  #       current_token[:declaration?] = true
+  #       @symbol_table.define(current_token)
+  #     end
+  #   # subroutine if preceeded by a dot or 'void'
+  #   elsif %w(. void).include? prev_token[:value]
+  #     current_token[:category] = "subroutine"
+  #     if prev_token[:value] == 'void'
+  #       current_token[:declaration?] = true
+  #       @symbol_table.define(current_token)
+  #     end
+  #   # let is assignment to a var, not sure what scope
+  #   elsif prev_token[:value] == 'let'
+  #     current_token[:category] = "?????"
+  #   # part of an expression
+  #   elsif %w(+ - = / * | ~ < > [).include? prev_token[:value]
+  #     current_token[:category] = "?????"
+  #   # Must be a declaration if Class is specified
+  #   elsif prev_token[:category] == "class"
+  #     if %w(method function constructor).include? prev_prev_token[:value]
+  #       current_token[:category] = "subroutine"
+  #     elsif %(static field).include? prev_prev_token[:value]
+  #       current_token[:category] = prev_prev_token[:value]
+  #     else
+  #       current_token[:category] = "var"
+  #     end
+  #     current_token[:declaration?] = true
+  #     current_token[:type] = prev_token[:value]
+  #     @symbol_table.define(current_token)
+  #   elsif %w(int char boolean).include? prev_token[:value]
+  #     case prev_prev_token[:value]
+  #     when 'static'
+  #       current_token[:category] = "static"
+  #     when 'field'
+  #       current_token[:category] = "field"
+  #     when '('
+  #       current_token[:category] = "argument"
+  #     else
+  #       current_token[:category] = "var"
+  #     end
+  #     current_token[:type] = prev_token[:value]
+  #     current_token[:declaration?] = true
+  #     @symbol_table.define(current_token)
+  #   elsif prev_token[:value] == ','
+  #     current_token[:category] = prev_prev_token[:category]
+  #     current_token[:declaration?] = prev_prev_token[:declaration?]
+  #     if current_token[:declaration?]
+  #       current_token[:type] = prev_prev_token[:type]
+  #       @symbol_table.define(current_token)
+  #     end
+  #   elsif prev_token[:value] == 'do'
+  #     current_token[:category] = 'subroutine'
+  #   elsif prev_token[:value] == '('
+  #     current_token[:category] == '?????'
+  #   elsif prev_token[:value] == 'return'
+  #       token_definition = lookup(current_token)
+  #       current_token[:type] = token_definition[:type]
+  #       current_token[:num] = token_definition[:num]
+  #       current_token[:category] = token_definition[:category]
+  #   else
+  #     puts '-------------------------------'
+  #     puts "UNHANDLED"
+  #     puts prev_token
+  #     puts current_token
+  #     puts '-------------------------------'
+  #   end
+  #   if (!current_token[:declaration?]) && !(%w(subroutine class).include? current_token[:category])
+  #     lookup(current_token)
+  #   end
+  #   # puts current_token
+  #   current_token
+  # end
 
   def compile_class
     # 'class' className '{' classVarDec* subroutineDec* '}'
@@ -363,8 +386,12 @@ class CompilationEngine
       class_node[:value] << compile_class_var_dec
     end
 
+    puts @symbol_table.class_table
+
+
     while ["constructor", "function","method"].include? current_token[:value]
       class_node[:value] << compile_subroutine
+      puts @symbol_table.current_table
     end
 
     class_node[:value] << current_token
