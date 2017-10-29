@@ -3,23 +3,57 @@ class SymbolTable
   def initialize
     @class_table = []
     @subroutine_table = []
+    @current_table = @class_table
     @static_index = 0
     @field_index = 0
     @arg_index = 0
     @local_index = 0
   end
 
+  def print
+    puts '|| CLASS ============================'
+    puts @class_table
+  end
+
   def start_subroutine
     @subroutine_table = []
+    @current_table = @subroutine_table
   end
 
   def define(token)
-    puts token
+    # puts "Value: #{token[:value]},  Category: #{token[:category]}"
     case token[:category]
     when 'class'
       @class_table = []
+      @current_table = @class_table
     when 'field'
-
+      @current_table << {
+        name: token[:value],
+        type: token[:type],
+        kind: token[:category],
+        num: @field_index
+      }
+      @field_index += 1
+    when 'static'
+      @current_table << {
+        name: token[:value],
+        type: token[:type],
+        kind: token[:category],
+        num: @static_index
+      }
+      @static_index += 1
+    when 'subroutine'
+      start_subroutine
+    when 'var'
+      @current_table << {
+        name: token[:value],
+        type: token[:type],
+        kind: token[:category],
+        num: @local_index
+      }
+      @local_index += 1
+    else
+      puts "UNDEFINED: #{token}"
     end
   end
 
@@ -218,6 +252,7 @@ class CompilationEngine
     @symbol_table = SymbolTable.new()
     @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
+    @symbol_table.print
     # print_node @analyzed_file
   end
 
