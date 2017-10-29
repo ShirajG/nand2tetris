@@ -1,4 +1,41 @@
 require 'byebug'
+class SymbolTable
+  def initialize
+    @class_table = []
+    @subroutine_table = []
+    @static_index = 0
+    @field_index = 0
+    @arg_index = 0
+    @local_index = 0
+  end
+
+  def start_subroutine
+    @subroutine_table = []
+  end
+
+  def define(token)
+    puts token
+    case token[:category]
+    when 'class'
+      @class_table = []
+    when 'field'
+
+    end
+  end
+
+  def var_count(token)
+  end
+
+  def kind_of(token)
+  end
+
+  def type_of(token)
+  end
+
+  def index_of(token)
+  end
+end
+
 class JackTokenizer
   @@symbols = %w({ } ( ) [ ] . , ; + - * / & | < > = ~)
   @@token_types = {
@@ -178,10 +215,10 @@ class CompilationEngine
     @tokens = tokenizer.tokens
     @filename = tokenizer.filename
     @token_idx = 0
+    @symbol_table = SymbolTable.new()
     @xml = File.open(@filename + '.xml', 'w')
-    # puts @tokens
     @analyzed_file = compile_class
-    print_node @analyzed_file
+    # print_node @analyzed_file
   end
 
   def node
@@ -215,12 +252,14 @@ class CompilationEngine
       current_token[:category] = "class"
       if prev_token[:value] == "class"
         current_token[:declaration?] = true
+        @symbol_table.define(current_token)
       end
     # subroutine if preceeded by a dot or 'void'
     elsif %w(. void).include? prev_token[:value]
       current_token[:category] = "subroutine"
       if prev_token[:value] == 'void'
         current_token[:declaration?] = true
+        @symbol_table.define(current_token)
       end
     # let is assignment to a var, not sure what scope
     elsif prev_token[:value] == 'let'
@@ -236,6 +275,7 @@ class CompilationEngine
         current_token[:category] = "var"
       end
       current_token[:declaration?] = true
+      @symbol_table.define(current_token)
     elsif %w(int char boolean).include? prev_token[:value]
       case prev_prev_token[:value]
       when 'static'
@@ -248,9 +288,13 @@ class CompilationEngine
         current_token[:category] = "var"
       end
       current_token[:declaration?] = true
+      @symbol_table.define(current_token)
     elsif prev_token[:value] == ','
       current_token[:category] = prev_prev_token[:category]
       current_token[:declaration?] = prev_prev_token[:declaration?]
+      if current_token[:declaration?]
+        @symbol_table.define(current_token)
+      end
     elsif prev_token[:value] == 'do'
       current_token[:category] = 'subroutine'
     elsif prev_token[:value] == '('
@@ -263,7 +307,7 @@ class CompilationEngine
       puts '>>>>>>>>>>>>>>>>>>>>>>>>'
       puts current_token
     end
-    puts current_token
+    # puts current_token
     current_token
   end
 
@@ -635,31 +679,6 @@ class CompilationEngine
 
     @xml <<  "#{root_indent}</#{node[:type]}>\n"
     # puts "#{root_indent}</#{node[:type]}>"
-  end
-end
-
-class SymbolTable
-  def initialize(*args)
-    @class_table = {}
-    @subroutine_table = {}
-  end
-
-  def start_subroutine
-  end
-
-  def define
-  end
-
-  def var_count
-  end
-
-  def kind_of
-  end
-
-  def type_of
-  end
-
-  def index_of
   end
 end
 
