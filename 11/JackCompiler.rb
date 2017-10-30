@@ -1,56 +1,54 @@
 # require 'byebug'
 class SymbolTable
   attr_reader :current_table, :class_table
+
   def initialize
     @class_table = {}
     @subroutine_table = {}
     @current_table = @class_table
     @static_index = 0
     @field_index = 0
-    @arg_index = 0
+    @argument_index = 0
     @local_index = 0
-  end
-
-  def print
-    puts '|| CLASS ============================'
-    puts @class_table
   end
 
   def start_subroutine
     @subroutine_table = {}
+    @argument_index = 0
+    @local_index = 0
     @current_table = @subroutine_table
   end
 
-  def define(token)
-    case token[:category]
-    when 'class'
-      @class_table = {}
-      @current_table = @class_table
+  def define(variable)
+    case variable[:kind]
     when 'field'
-      @current_table[token[:value]] = {
-        type: token[:type],
-        kind: token[:category],
+      @class_table[variable[:name]] = {
+        kind: variable[:kind],
+        type: variable[:type],
         num: @field_index
       }
       @field_index += 1
     when 'static'
-      @current_table[token[:value]] = {
-        type: token[:type],
-        kind: token[:category],
+      @class_table[variable[:name]] = {
+        kind: variable[:kind],
+        type: variable[:type],
         num: @static_index
       }
       @static_index += 1
-    when 'subroutine'
-      start_subroutine
-    when 'var'
-      @current_table[token[:value]] = {
-        type: token[:type],
-        kind: token[:category],
+    when 'argument'
+      @subroutine_table[variable[:name]] = {
+        kind: variable[:kind],
+        type: variable[:type],
+        num: @argument_index
+      }
+      @argument_index += 1
+    when 'local'
+      @subroutine_table[variable[:name]] = {
+        kind: variable[:kind],
+        type: variable[:type],
         num: @local_index
       }
       @local_index += 1
-    else
-      puts "UNDEFINED: #{token}"
     end
   end
 
@@ -67,6 +65,10 @@ class SymbolTable
 
   def index_of(token)
     lookup(token)[:num]
+  end
+
+  def lookup token
+    @current_table[token[:value]] || @class_table[token[:value]]
   end
 end
 
@@ -252,8 +254,6 @@ class CompilationEngine
     @symbol_table = SymbolTable.new()
     @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
-    # @symbol_table.print
-    # print_node @analyzed_file
   end
 
   def node
@@ -269,109 +269,13 @@ class CompilationEngine
   end
 
   def advance(node)
-    # if current_token[:type] == 'identifier'
-      # node[:value] << parse_identifier
-    # else
-      node[:value] << current_token
-    # end
+    node[:value] << current_token
     @token_idx += 1
   end
 
   def lookup(token)
-    if @symbol_table.current_table[token[:value]]
-      token[:type] = @symbol_table.current_table[token[:value]][:type]
-      token[:num] = @symbol_table.current_table[token[:value]][:num]
-      token[:category] = @symbol_table.current_table[token[:value]][:category]
-    elsif @symbol_table.class_table[token[:value]]
-      token[:type] = @symbol_table.class_table[token[:value]][:type]
-      token[:num] = @symbol_table.class_table[token[:value]][:num]
-      token[:category] = @symbol_table.class_table[token[:value]][:category]
-    else
-      puts current_token
-      puts "lookup error"
-    end
-    token
+    @symbol_table.lookup(token)
   end
-
-  # def parse_identifier
-  #   current_token[:declaration?] = false
-  #   prev_token = @tokens[@token_idx - 1]
-  #   prev_prev_token = @tokens[@token_idx - 2]
-  #   # Class if starts with a capital letter
-  #   if current_token[:value][0].upcase == current_token[:value][0]
-  #     current_token[:category] = "class"
-  #     if prev_token[:value] == "class"
-  #       current_token[:declaration?] = true
-  #       @symbol_table.define(current_token)
-  #     end
-  #   # subroutine if preceeded by a dot or 'void'
-  #   elsif %w(. void).include? prev_token[:value]
-  #     current_token[:category] = "subroutine"
-  #     if prev_token[:value] == 'void'
-  #       current_token[:declaration?] = true
-  #       @symbol_table.define(current_token)
-  #     end
-  #   # let is assignment to a var, not sure what scope
-  #   elsif prev_token[:value] == 'let'
-  #     current_token[:category] = "?????"
-  #   # part of an expression
-  #   elsif %w(+ - = / * | ~ < > [).include? prev_token[:value]
-  #     current_token[:category] = "?????"
-  #   # Must be a declaration if Class is specified
-  #   elsif prev_token[:category] == "class"
-  #     if %w(method function constructor).include? prev_prev_token[:value]
-  #       current_token[:category] = "subroutine"
-  #     elsif %(static field).include? prev_prev_token[:value]
-  #       current_token[:category] = prev_prev_token[:value]
-  #     else
-  #       current_token[:category] = "var"
-  #     end
-  #     current_token[:declaration?] = true
-  #     current_token[:type] = prev_token[:value]
-  #     @symbol_table.define(current_token)
-  #   elsif %w(int char boolean).include? prev_token[:value]
-  #     case prev_prev_token[:value]
-  #     when 'static'
-  #       current_token[:category] = "static"
-  #     when 'field'
-  #       current_token[:category] = "field"
-  #     when '('
-  #       current_token[:category] = "argument"
-  #     else
-  #       current_token[:category] = "var"
-  #     end
-  #     current_token[:type] = prev_token[:value]
-  #     current_token[:declaration?] = true
-  #     @symbol_table.define(current_token)
-  #   elsif prev_token[:value] == ','
-  #     current_token[:category] = prev_prev_token[:category]
-  #     current_token[:declaration?] = prev_prev_token[:declaration?]
-  #     if current_token[:declaration?]
-  #       current_token[:type] = prev_prev_token[:type]
-  #       @symbol_table.define(current_token)
-  #     end
-  #   elsif prev_token[:value] == 'do'
-  #     current_token[:category] = 'subroutine'
-  #   elsif prev_token[:value] == '('
-  #     current_token[:category] == '?????'
-  #   elsif prev_token[:value] == 'return'
-  #       token_definition = lookup(current_token)
-  #       current_token[:type] = token_definition[:type]
-  #       current_token[:num] = token_definition[:num]
-  #       current_token[:category] = token_definition[:category]
-  #   else
-  #     puts '-------------------------------'
-  #     puts "UNHANDLED"
-  #     puts prev_token
-  #     puts current_token
-  #     puts '-------------------------------'
-  #   end
-  #   if (!current_token[:declaration?]) && !(%w(subroutine class).include? current_token[:category])
-  #     lookup(current_token)
-  #   end
-  #   # puts current_token
-  #   current_token
-  # end
 
   def compile_class
     # 'class' className '{' classVarDec* subroutineDec* '}'
@@ -403,14 +307,23 @@ class CompilationEngine
     class_var_dec_node = node
     class_var_dec_node[:type] = 'classVarDec'
 
-    3.times do
-      advance class_var_dec_node
-    end
+    class_var = {}
+
+    class_var[:kind] = current_token[:value]
+    advance class_var_dec_node
+
+    class_var[:type] = current_token[:value]
+    advance class_var_dec_node
+
+    class_var[:name] = current_token[:value]
+    @symbol_table.define(class_var)
+    advance class_var_dec_node
 
     while current_token[:value] == ','
-      2.times do
-        advance class_var_dec_node
-      end
+      advance class_var_dec_node
+      class_var[:name] = current_token[:value]
+      @symbol_table.define(class_var)
+      advance class_var_dec_node
     end
 
     advance class_var_dec_node
@@ -421,6 +334,8 @@ class CompilationEngine
     # ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
     subroutine_node = node
     subroutine_node[:type] = 'subroutineDec'
+
+    @symbol_table.start_subroutine
 
     4.times do
       advance subroutine_node
@@ -440,7 +355,6 @@ class CompilationEngine
 
     advance subroutine_body_node
 
-
     while current_token[:value] == 'var'
       subroutine_body_node[:value] << compile_var_dec
     end
@@ -457,14 +371,22 @@ class CompilationEngine
     parameter_list_node[:type] = 'parameterList'
 
     if %w(identifier keyword).include? current_token[:type]
-      2.times do
-        advance parameter_list_node
-      end
+      argument = {}
+      argument[:kind] = 'argument'
+      argument[:type] = current_token[:value]
+      advance parameter_list_node
+      argument[:name] = current_token[:value]
+      advance parameter_list_node
+
+      @symbol_table.define(argument)
 
       while current_token[:value] == ","
-        3.times do
-          advance parameter_list_node
-        end
+        advance parameter_list_node
+        argument[:type] = current_token[:value]
+        advance parameter_list_node
+        argument[:name] = current_token[:value]
+        @symbol_table.define(argument)
+        advance parameter_list_node
       end
     end
     return parameter_list_node
@@ -474,14 +396,22 @@ class CompilationEngine
     # 'var' type varName (',' varName)* ';'
     var_dec_node = node
     var_dec_node[:type] = 'varDec'
-    3.times do
-      advance var_dec_node
-    end
+
+    variable = {}
+
+    variable[:kind] = 'local'
+    advance var_dec_node
+    variable[:type] = current_token[:value]
+    advance var_dec_node
+    variable[:name] = current_token[:value]
+    @symbol_table.define(variable)
+    advance var_dec_node
 
     while current_token[:value] == ','
-      2.times do
-        advance var_dec_node
-      end
+      advance var_dec_node
+      variable[:name] = current_token[:value]
+      @symbol_table.define(variable)
+      advance var_dec_node
     end
 
     advance var_dec_node
@@ -620,13 +550,11 @@ class CompilationEngine
 
     advance return_node
 
-
     if(current_token[:value] != ';')
       return_node[:value] << compile_expression
     end
 
     advance return_node
-
 
     return return_node
   end
