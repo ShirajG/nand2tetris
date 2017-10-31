@@ -254,6 +254,8 @@ class CompilationEngine
     @symbol_table = SymbolTable.new()
     @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
+    print_node @analyzed_file
+    # puts @tokens
   end
 
   def node
@@ -269,6 +271,18 @@ class CompilationEngine
   end
 
   def advance(node)
+    if current_token[:type] == 'identifier'
+      lookup = lookup(current_token)
+      if lookup
+        current_token[:type] = lookup[:type]
+        current_token[:kind] = lookup[:kind]
+        current_token[:index] = lookup[:num]
+      elsif current_token[:value][0].upcase == current_token[:value][0]
+        current_token[:type] = 'class'
+      else
+        current_token[:type] = 'subroutine'
+      end
+    end
     node[:value] << current_token
     @token_idx += 1
   end
@@ -290,12 +304,12 @@ class CompilationEngine
       class_node[:value] << compile_class_var_dec
     end
 
-    puts @symbol_table.class_table
+    # puts @symbol_table.class_table
 
 
     while ["constructor", "function","method"].include? current_token[:value]
       class_node[:value] << compile_subroutine
-      puts @symbol_table.current_table
+      # puts @symbol_table.current_table
     end
 
     class_node[:value] << current_token
@@ -317,12 +331,20 @@ class CompilationEngine
 
     class_var[:name] = current_token[:value]
     @symbol_table.define(class_var)
+    current_token[:type] = class_var[:type]
+    current_token[:kind] = class_var[:kind]
+    current_token[:declaration?] = true
+    current_token[:index] = @symbol_table.index_of(current_token)
     advance class_var_dec_node
 
     while current_token[:value] == ','
       advance class_var_dec_node
       class_var[:name] = current_token[:value]
       @symbol_table.define(class_var)
+      current_token[:type] = class_var[:type]
+      current_token[:kind] = class_var[:kind]
+      current_token[:declaration?] = true
+      current_token[:index] = @symbol_table.index_of(current_token)
       advance class_var_dec_node
     end
 
@@ -376,9 +398,14 @@ class CompilationEngine
       argument[:type] = current_token[:value]
       advance parameter_list_node
       argument[:name] = current_token[:value]
+      current_token[:kind] = 'argument'
+      current_token[:type] = argument[:type]
+      current_token[:declaration?] = true
+      @symbol_table.define(argument)
+      current_token[:index] = @symbol_table.index_of(current_token)
+
       advance parameter_list_node
 
-      @symbol_table.define(argument)
 
       while current_token[:value] == ","
         advance parameter_list_node
@@ -404,12 +431,14 @@ class CompilationEngine
     variable[:type] = current_token[:value]
     advance var_dec_node
     variable[:name] = current_token[:value]
+    current_token[:declaration?] = true
     @symbol_table.define(variable)
     advance var_dec_node
 
     while current_token[:value] == ','
       advance var_dec_node
       variable[:name] = current_token[:value]
+      current_token[:declaration?] = true
       @symbol_table.define(variable)
       advance var_dec_node
     end
@@ -568,7 +597,6 @@ class CompilationEngine
 
     while @@ops.include? current_token[:value]
       advance expression_node
-
       expression_node[:value] << compile_term
     end
 
@@ -613,11 +641,9 @@ class CompilationEngine
       elsif next_token[:value] == '['
         2.times do
           advance term_node
-
         end
         term_node[:value] << compile_expression
         advance term_node
-
       else
         advance term_node
       end
@@ -660,19 +686,19 @@ class CompilationEngine
     end
 
     @xml << "#{root_indent}<#{node[:type]}>\n"
-    # puts "#{root_indent}<#{node[:type]}>"
+    puts "#{root_indent}<#{node[:type]}>"
 
     node[:value].each do |val|
       if val[:value].is_a? String
         @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
-        # puts "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>"
+        puts "#{child_indent}<#{val[:type]} #{val[:kind]} #{val[:index]} #{val[:declaration?] ? 'declaration' : '';}> #{val[:value]} </#{val[:type]}>"
       else
         print_node(val, nesting + 2)
       end
     end
 
     @xml <<  "#{root_indent}</#{node[:type]}>\n"
-    # puts "#{root_indent}</#{node[:type]}>"
+    puts "#{root_indent}</#{node[:type]}>"
   end
 end
 
