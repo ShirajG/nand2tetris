@@ -252,10 +252,10 @@ class CompilationEngine
     @filename = tokenizer.filename
     @token_idx = 0
     @symbol_table = SymbolTable.new()
-    @code_writer = VMWriter.new(File.open(@filename + '.vm', 'w'))
+    @code_writer = VMWriter.new(File.open(@filename + 'test.vm', 'w'))
     # @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
-    puts  @tokens
+    # puts  @tokens
     # puts @tokens
   end
 
@@ -297,9 +297,10 @@ class CompilationEngine
     class_node = node
     class_node[:type] = 'class'
 
-    3.times do
-      advance class_node
-    end
+    advance class_node
+    @code_writer.set_class(current_token)
+    advance class_node
+    advance class_node
 
     while ["static", "field"].include? current_token[:value]
       class_node[:value] << compile_class_var_dec
@@ -361,11 +362,15 @@ class CompilationEngine
 
     @symbol_table.start_subroutine
 
-    4.times do
-      advance subroutine_node
-    end
+    advance subroutine_node
+    advance subroutine_node
+    subroutine_name = current_token[:value]
+    advance subroutine_node
+    advance subroutine_node
 
     subroutine_node[:value] << compile_parameter_list
+    locals_count = subroutine_node[:value].last[:value].length
+    @code_writer.write_function(subroutine_name, locals_count)
 
     advance subroutine_node
     subroutine_node[:value] << compile_subroutine_body
@@ -553,23 +558,47 @@ class CompilationEngine
     advance do_node
 
     if next_token[:value] == '.'
-      4.times do
-        advance do_node
-      end
+    #(className | varName) '.' subroutineName '(' expressionList ')'
+      name = current_token[:value]
+      advance do_node
+      name += current_token[:value]
+      advance do_node
+      name += current_token[:value]
+      advance do_node
+      advance do_node
 
       do_node[:value] << compile_expression_list
+      exp_count = 0
+      do_node[:value].last[:value].each do |exp|
+        if exp[:type] == 'expression'
+          exp_count += 1
+        end
+      end
+
+      @code_writer.write_call(name, exp_count)
       advance do_node
     else
-      2.times do
-        advance do_node
-      end
+    # subroutineName '(' expressionList ')'
+      name = current_token[:value]
+      advance do_node
+      advance do_node
 
       do_node[:value] << compile_expression_list
+
+      exp_count = 0
+      do_node[:value].last[:value].each do |exp|
+        if exp[:type] == 'expression'
+          exp_count += 1
+        end
+      end
+
+      @code_writer.write_call(name, exp_count)
       advance do_node
     end
 
     advance do_node
-
+    # Do statement, pop return val to garbage
+    @code_writer.write_pop('temp', 0)
 
     return do_node
   end
@@ -583,10 +612,12 @@ class CompilationEngine
 
     if(current_token[:value] != ';')
       return_node[:value] << compile_expression
+    else
+      @code_writer.write_push('constant', 0)
     end
 
     advance return_node
-
+    @code_writer.write_return
     return return_node
   end
 
@@ -598,6 +629,12 @@ class CompilationEngine
     expression_node[:value] << compile_term
 
     while @@ops.include? current_token[:value]
+      case current_token[:value]
+      when '+'
+        @code_writer.write_arithmetic('add')
+      when '*'
+        @code_writer.write_call('Math.multiply', 2)
+      end
       advance expression_node
       expression_node[:value] << compile_term
     end
@@ -609,46 +646,56 @@ class CompilationEngine
     # integerConstant | stringConstant | keywordConstant | '(' expression ')' | unaryOp term | varName | varName '[' expression  ']' | subroutineCall
     term_node = node
     term_node[:type] = 'term'
-    if %w(integerConstant stringConstant keyword).include? current_token[:type]
+    if current_token[:type] == 'integerConstant'
+      @code_writer.write_push('constant', current_token[:value])
       advance term_node
-
+    elsif current_token[:type] == 'stringConstant'
+      advance term_node
+    elsif current_token[:type] == 'keyword'
+      advance term_node
     elsif current_token[:value] == '('
       advance term_node
-
       term_node[:value] << compile_expression
       advance term_node
-
     elsif @@unaryOps.include? current_token[:value]
       advance term_node
-
       term_node[:value] << compile_term
-    elsif current_token[:type] == "identifier"
-      if ['.', '('].include? next_token[:value]
-        if next_token[:value] == '.'
-          4.times do
-            advance term_node
-          end
-
-          term_node[:value] << compile_expression_list
-          advance term_node
-
-        else
-          2.times do
-            advance term_node
-          end
-
-          term_node[:value] << compile_expression_list
-          advance term_node
-        end
-      elsif next_token[:value] == '['
-        2.times do
-          advance term_node
-        end
-        term_node[:value] << compile_expression
+    elsif ['.', '('].include? next_token[:value]
+    # Handle subroutine calls
+      if next_token[:value] == '.'
+      #(className | varName) '.' subroutineName '(' expressionList ')'
+        name = current_token[:value]
         advance term_node
+        name += current_token[:value]
+        advance term_node
+        name += current_token[:value]
+        advance term_node
+        advance term_node
+
+        term_node[:value] << compile_expression_list
+        # UNTESTED
+        count = term_node[:value].last.length
+        @code_writer.write_call(name, count)
+        advance term_node
+
       else
+      # subroutineName '(' expressionList ')'
+        name = current_token[:value]
+        advance term_node
+        advance term_node
+        term_node[:value] << compile_expression_list
+        count = term_node[:value].last.length
+        @code_writer.write_call(name, count)
         advance term_node
       end
+    elsif next_token[:value] == '['
+      2.times do
+        advance term_node
+      end
+      term_node[:value] << compile_expression
+      advance term_node
+    else
+      advance term_node
     end
 
     return term_node
@@ -707,42 +754,47 @@ end
 class VMWriter
   def initialize(file)
     @outfile = file
+    @classname
   end
 
-  def write_push(*args)
-
+  def write_push(segment, index)
+    @outfile << "push #{segment} #{index}\n"
   end
 
-  def write_pop(*args)
-
+  def write_pop(segment, index)
+    @outfile << "pop #{segment} #{index}\n"
   end
 
-  def write_arithmetic(*args)
-
+  def write_arithmetic(command)
+    @outfile << "#{command}\n"
   end
 
-  def write_label(*args)
-
-  end
-
-  def write_goto(*args)
+  def write_label(label)
 
   end
 
-  def write_if(*args)
+  def write_goto(label)
 
   end
 
-  def write_call(*args)
+  def write_if(label)
 
   end
 
-  def write_function(*args)
-
+  def write_call(name, arg_count)
+    @outfile << "call #{name} #{arg_count}\n"
   end
 
-  def write_return(*args)
+  def write_function(name, locals_count)
+    @outfile << "function #{@class}.#{name} #{locals_count}\n"
+  end
 
+  def write_return
+    @outfile << "return\n"
+  end
+
+  def set_class(token)
+    @class = token[:value]
   end
 
   def close
