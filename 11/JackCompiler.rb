@@ -629,14 +629,17 @@ class CompilationEngine
     expression_node[:value] << compile_term
 
     while @@ops.include? current_token[:value]
-      case current_token[:value]
+      operation = current_token[:value]
+
+      advance expression_node
+      expression_node[:value] << compile_term
+
+      case operation
       when '+'
         @code_writer.write_arithmetic('add')
       when '*'
         @code_writer.write_call('Math.multiply', 2)
       end
-      advance expression_node
-      expression_node[:value] << compile_term
     end
 
     return expression_node
@@ -673,19 +676,28 @@ class CompilationEngine
         advance term_node
 
         term_node[:value] << compile_expression_list
-        # UNTESTED
-        count = term_node[:value].last.length
-        @code_writer.write_call(name, count)
-        advance term_node
+        exp_count = 0
+        term_node[:value].last[:value].each do |exp|
+          if exp[:type] == 'expression'
+            exp_count += 1
+          end
+        end
 
+        @code_writer.write_call(name, exp_count)
+        advance term_node
       else
       # subroutineName '(' expressionList ')'
         name = current_token[:value]
         advance term_node
         advance term_node
         term_node[:value] << compile_expression_list
-        count = term_node[:value].last.length
-        @code_writer.write_call(name, count)
+        exp_count = 0
+        term_node[:value].last[:value].each do |exp|
+          if exp[:type] == 'expression'
+            exp_count += 1
+          end
+        end
+        @code_writer.write_call(name, exp_count)
         advance term_node
       end
     elsif next_token[:value] == '['
