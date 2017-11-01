@@ -252,7 +252,7 @@ class CompilationEngine
     @filename = tokenizer.filename
     @token_idx = 0
     @symbol_table = SymbolTable.new()
-    @code_writer = VMWriter.new(File.open(@filename + 'test.vm', 'w'))
+    @code_writer = VMWriter.new(File.open(@filename + '.vm', 'w'))
     # @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
     # puts  @tokens
