@@ -1,4 +1,3 @@
-# require 'byebug'
 class SymbolTable
   attr_reader :current_table, :class_table
 
@@ -252,7 +251,7 @@ class CompilationEngine
     @filename = tokenizer.filename
     @token_idx = 0
     @symbol_table = SymbolTable.new()
-    @code_writer = VMWriter.new(File.open(@filename + '.vm', 'w'))
+    @code_writer = VMWriter.new(File.open(@filename + '.vmx', 'w'))
     # @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
     # puts  @tokens
@@ -369,6 +368,7 @@ class CompilationEngine
     advance subroutine_node
 
     subroutine_node[:value] << compile_parameter_list
+    # Possible error here when compared with given compiler
     locals_count = subroutine_node[:value].last[:value].length
     @code_writer.write_function(subroutine_name, locals_count)
 
@@ -484,6 +484,8 @@ class CompilationEngine
       advance let_node
     end
 
+    destination = let_node[:value].last
+
     if current_token[:value] == '['
       advance let_node
       let_node[:value] << compile_expression
@@ -494,6 +496,8 @@ class CompilationEngine
 
     let_node[:value] << compile_expression
     advance let_node
+
+    @code_writer.write_pop(destination[:kind], destination[:index])
 
     return let_node
   end
@@ -661,8 +665,15 @@ class CompilationEngine
       term_node[:value] << compile_expression
       advance term_node
     elsif @@unaryOps.include? current_token[:value]
+      unary = current_token[:value]
       advance term_node
       term_node[:value] << compile_term
+      case unary
+      when '-'
+        @code_writer.write_arithmetic('neg')
+      when '~'
+        @code_writer.write_arithmetic('not')
+      end
     elsif ['.', '('].include? next_token[:value]
     # Handle subroutine calls
       if next_token[:value] == '.'
@@ -707,6 +718,11 @@ class CompilationEngine
       term_node[:value] << compile_expression
       advance term_node
     else
+      # handle identifiers
+      @code_writer.write_push(
+        lookup(current_token)[:kind],
+        lookup(current_token)[:num]
+      )
       advance term_node
     end
 
