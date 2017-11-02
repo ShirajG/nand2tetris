@@ -1,9 +1,10 @@
 class SymbolTable
-  attr_reader :current_table, :class_table
+  attr_reader :current_table, :class_table, :current_subroutine
 
   def initialize
     @class_table = {}
     @subroutine_table = {}
+    @current_subroutine = nil
     @current_table = @class_table
     @static_index = 0
     @field_index = 0
@@ -11,11 +12,12 @@ class SymbolTable
     @local_index = 0
   end
 
-  def start_subroutine
+  def start_subroutine(name)
     @subroutine_table = {}
     @argument_index = 0
     @local_index = 0
     @current_table = @subroutine_table
+    @current_subroutine = name
   end
 
   def define(variable)
@@ -359,21 +361,18 @@ class CompilationEngine
     subroutine_node = node
     subroutine_node[:type] = 'subroutineDec'
 
-    @symbol_table.start_subroutine
-
     advance subroutine_node
     advance subroutine_node
     subroutine_name = current_token[:value]
+    @symbol_table.start_subroutine(subroutine_name)
     advance subroutine_node
     advance subroutine_node
 
     subroutine_node[:value] << compile_parameter_list
-    # Possible error here when compared with given compiler
-    locals_count = subroutine_node[:value].last[:value].length
-    @code_writer.write_function(subroutine_name, locals_count)
 
     advance subroutine_node
     subroutine_node[:value] << compile_subroutine_body
+
     return subroutine_node
   end
 
@@ -384,9 +383,19 @@ class CompilationEngine
 
     advance subroutine_body_node
 
-    while current_token[:value] == 'var'
+    var_count = 0
+    while %w(var).include? current_token[:value]
       subroutine_body_node[:value] << compile_var_dec
+      subroutine_body_node[:value].last[:value].each do |x|
+        if x[:declaration?]
+          var_count += 1
+        end
+      end
     end
+
+    @code_writer.write_function(
+      @symbol_table.current_subroutine,
+      var_count)
 
     subroutine_body_node[:value] << compile_statements
 
