@@ -668,6 +668,13 @@ class CompilationEngine
     elsif current_token[:type] == 'stringConstant'
       advance term_node
     elsif current_token[:type] == 'keyword'
+      case current_token[:value]
+      when 'true'
+        @code_writer.write_push('constant', 0)
+        @code_writer.write_arithmetic('not')
+      when 'false'
+        @code_writer.write_push('constant', 0)
+      end
       advance term_node
     elsif current_token[:value] == '('
       advance term_node
