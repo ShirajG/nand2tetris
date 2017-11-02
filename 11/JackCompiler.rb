@@ -1,4 +1,5 @@
 class SymbolTable
+  # Keeps track of variables and their scoping
   attr_reader :current_table, :class_table, :current_subroutine
 
   def initialize
@@ -74,6 +75,7 @@ class SymbolTable
 end
 
 class JackTokenizer
+  # Parses source text into discrete tokens
   @@symbols = %w({ } ( ) [ ] . , ; + - * / & | < > = ~)
   @@token_types = {
     keyword: "keyword", symbol: "symbol", identifier: "identifier",
@@ -97,7 +99,6 @@ class JackTokenizer
     @file = File.read(file)
       .gsub(/\/\/.+$/,"") # remove // comments
       .strip
-    # puts @file
 
     within_quote = false
     within_comment = false
@@ -242,6 +243,7 @@ class JackTokenizer
 end
 
 class CompilationEngine
+  # Converts the token list into a syntax tree
   @@ops = %w(+ - * / & | < > =)
   @@unaryOps = %w(- ~)
   @@keywordConstants = %w(true false null this)
@@ -256,8 +258,6 @@ class CompilationEngine
     @code_writer = VMWriter.new(File.open(@filename + '.vmx', 'w'))
     # @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
-    # puts  @tokens
-    # puts @tokens
   end
 
   def node
@@ -307,12 +307,8 @@ class CompilationEngine
       class_node[:value] << compile_class_var_dec
     end
 
-    # puts @symbol_table.class_table
-
-
     while ["constructor", "function","method"].include? current_token[:value]
       class_node[:value] << compile_subroutine
-      # puts @symbol_table.current_table
     end
 
     class_node[:value] << current_token
@@ -779,23 +775,24 @@ class CompilationEngine
     end
 
     @xml << "#{root_indent}<#{node[:type]}>\n"
-    puts "#{root_indent}<#{node[:type]}>"
+    # puts "#{root_indent}<#{node[:type]}>"
 
     node[:value].each do |val|
       if val[:value].is_a? String
         @xml << "#{child_indent}<#{val[:type]}> #{val[:value]} </#{val[:type]}>\n"
-        puts "#{child_indent}<#{val[:type]} #{val[:kind]} #{val[:index]} #{val[:declaration?] ? 'declaration' : '';}> #{val[:value]} </#{val[:type]}>"
+        # puts "#{child_indent}<#{val[:type]} #{val[:kind]} #{val[:index]} #{val[:declaration?] ? 'declaration' : '';}> #{val[:value]} </#{val[:type]}>"
       else
         print_node(val, nesting + 2)
       end
     end
 
     @xml <<  "#{root_indent}</#{node[:type]}>\n"
-    puts "#{root_indent}</#{node[:type]}>"
+    # puts "#{root_indent}</#{node[:type]}>"
   end
 end
 
 class VMWriter
+  # Converts the syntax tree into actual VM code
   def initialize(file)
     @outfile = file
     @classname
@@ -847,6 +844,7 @@ class VMWriter
 end
 
 class JackCompiler
+  # Converts a source file into VM code
   def initialize
     if File.file?(ARGV[0])
       CompilationEngine.new(JackTokenizer.new(ARGV[0])).analyzed_file
