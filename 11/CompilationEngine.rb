@@ -113,6 +113,7 @@ class CompilationEngine
     # ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
     @while_count = 0
     @if_count = 0
+
     subroutine_node = node
     subroutine_node[:type] = 'subroutineDec'
 
@@ -151,6 +152,22 @@ class CompilationEngine
     @code_writer.write_function(
       @symbol_table.current_subroutine,
       var_count)
+
+    if @symbol_table.current_subroutine == 'new'
+      field_count = 0
+      # static_count = 0
+      @symbol_table.class_table.each do |k,v|
+        if v[:kind] == 'field'
+          field_count += 1
+        # elsif v[:kind] == 'static'
+          # static_count += 1
+        end
+      end
+      @code_writer.write_push('constant', field_count)
+      @code_writer.write_call('Memory.alloc',1)
+      # set 'this' pointer to the address of new object
+      @code_writer.write_pop('pointer', 0)
+    end
 
     subroutine_body_node[:value] << compile_statements
 
@@ -261,7 +278,12 @@ class CompilationEngine
     let_node[:value] << compile_expression
     advance let_node
 
-    @code_writer.write_pop(destination[:kind], destination[:index])
+    case destination[:kind]
+    when 'field'
+      @code_writer.write_pop('this', destination[:index])
+    else
+      @code_writer.write_pop(destination[:kind], destination[:index])
+    end
 
     return let_node
   end
@@ -361,6 +383,11 @@ class CompilationEngine
         end
       end
 
+      # We need to handle calls to instance methods
+      # the same as calls to Class methods
+      # Gotta look up the Class the instance belongs to
+      # and pass the current instance as first arg
+
       @code_writer.write_call(name, exp_count)
       advance do_node
     else
@@ -427,6 +454,8 @@ class CompilationEngine
         @code_writer.write_arithmetic('sub')
       when '*'
         @code_writer.write_call('Math.multiply', 2)
+      when '/'
+        @code_writer.write_call('Math.divide', 2)
       when '<'
         @code_writer.write_arithmetic('lt')
       when '>'
@@ -457,6 +486,8 @@ class CompilationEngine
         @code_writer.write_arithmetic('not')
       when 'false'
         @code_writer.write_push('constant', 0)
+      when 'this'
+        @code_writer.write_push('pointer', 0)
       end
       advance term_node
     elsif current_token[:value] == '('
