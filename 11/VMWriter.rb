@@ -18,15 +18,15 @@ class VMWriter
   end
 
   def write_label(label)
-
+    @outfile << "label #{label}\n"
   end
 
   def write_goto(label)
-
+    @outfile << "goto #{label}\n"
   end
 
   def write_if(label)
-
+    @outfile << "if-goto #{label}\n"
   end
 
   def write_call(name, arg_count)

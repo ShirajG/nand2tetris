@@ -6,6 +6,8 @@ class CompilationEngine
   attr_reader :tokens, :analyzed_file
 
   def initialize(tokenizer)
+    @while_count = 0
+    @if_count = 0
     @tokens = tokenizer.tokens
     @filename = tokenizer.filename
     @token_idx = 0
@@ -109,6 +111,8 @@ class CompilationEngine
 
   def compile_subroutine
     # ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
+    @while_count = 0
+    @if_count = 0
     subroutine_node = node
     subroutine_node[:type] = 'subroutineDec'
 
@@ -264,6 +268,9 @@ class CompilationEngine
 
   def compile_if
     # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+    if_count = @if_count
+    @if_count += 1
+
     if_node = node
     if_node[:type] = 'ifStatement'
 
@@ -272,15 +279,19 @@ class CompilationEngine
     end
 
     if_node[:value] << compile_expression
+    @code_writer.write_if("IF_TRUE#{if_count}")
+    @code_writer.write_goto("IF_FALSE#{if_count}")
 
     2.times do
       advance if_node
     end
 
+    @code_writer.write_label("IF_TRUE#{if_count}")
     if_node[:value] << compile_statements
+    @code_writer.write_goto("IF_END#{if_count}")
     advance if_node
 
-
+    @code_writer.write_label("IF_FALSE#{if_count}")
     if current_token[:value] == 'else'
       2.times do
         advance if_node
@@ -288,14 +299,20 @@ class CompilationEngine
 
       if_node[:value] << compile_statements
       advance if_node
-
     end
+    @code_writer.write_label("IF_END#{if_count}")
 
     return if_node
   end
 
   def compile_while
     # 'while' '(' expression ')' '{' statements '}'
+    # Store while count in local scope, since statement
+    # may contain more while loops, and we need to tag
+    # those uniquely as well
+    while_count = @while_count
+    @while_count = @while_count + 1
+
     while_node = node
     while_node[:type] = 'whileStatement'
 
@@ -303,13 +320,18 @@ class CompilationEngine
       advance while_node
     end
 
+    @code_writer.write_label("WHILE_EXP#{while_count}")
     while_node[:value] << compile_expression
+    @code_writer.write_arithmetic('not')
 
     2.times do
       advance while_node
     end
 
+    @code_writer.write_if("WHILE_END#{while_count}")
     while_node[:value] << compile_statements
+    @code_writer.write_goto("WHILE_EXP#{while_count}")
+    @code_writer.write_label("WHILE_END#{while_count}")
 
     advance while_node
     return while_node
@@ -401,8 +423,18 @@ class CompilationEngine
       case operation
       when '+'
         @code_writer.write_arithmetic('add')
+      when '-'
+        @code_writer.write_arithmetic('sub')
       when '*'
         @code_writer.write_call('Math.multiply', 2)
+      when '<'
+        @code_writer.write_arithmetic('lt')
+      when '>'
+        @code_writer.write_arithmetic('gt')
+      when '='
+        @code_writer.write_arithmetic('eq')
+      when '&'
+        @code_writer.write_arithmetic('and')
       end
     end
 
