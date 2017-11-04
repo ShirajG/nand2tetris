@@ -174,6 +174,8 @@ class CompilationEngine
       @code_writer.write_push('argument',0)
       # switch current context to 'this'
       @code_writer.write_pop('pointer',0)
+    elsif @symbol_table.current_subroutine_type == 'function'
+
     end
 
     subroutine_body_node[:value] << compile_statements
@@ -317,8 +319,11 @@ class CompilationEngine
 
     @code_writer.write_label("IF_TRUE#{if_count}")
     if_node[:value] << compile_statements
-    @code_writer.write_goto("IF_END#{if_count}")
     advance if_node
+
+    if current_token[:value] == 'else'
+      @code_writer.write_goto("IF_END#{if_count}")
+    end
 
     @code_writer.write_label("IF_FALSE#{if_count}")
     if current_token[:value] == 'else'
@@ -328,8 +333,8 @@ class CompilationEngine
 
       if_node[:value] << compile_statements
       advance if_node
+      @code_writer.write_label("IF_END#{if_count}")
     end
-    @code_writer.write_label("IF_END#{if_count}")
 
     return if_node
   end
@@ -376,6 +381,7 @@ class CompilationEngine
     #(className | varName) '.' subroutineName '(' expressionList ')'
       if lookup(current_token)
         type = lookup(current_token)[:type]
+        kind = lookup(current_token)[:kind]
       end
       name = current_token[:value]
       advance do_node
@@ -398,7 +404,11 @@ class CompilationEngine
       # Gotta look up the Class the instance belongs to
       # and pass the current instance as first arg
       if type
-        @code_writer.write_push('this', 0)
+        if kind == 'local'
+          @code_writer.write_push('local', 0)
+        else
+          @code_writer.write_push('this', 0)
+        end
         name = name.gsub(/.+\./, "#{type}.")
         @code_writer.write_call(name, exp_count + 1)
       else
@@ -421,7 +431,7 @@ class CompilationEngine
       end
 
       name = [@symbol_table.current_class,name].join('.')
-      @code_writer.write_push('pointer', 0)
+      @code_writer.write_push('pointer',0)
       @code_writer.write_call(name, exp_count + 1)
       advance do_node
     end
