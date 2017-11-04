@@ -56,6 +56,7 @@ class CompilationEngine
     class_node[:type] = 'class'
 
     advance class_node
+    @symbol_table.current_class = current_token[:value]
     @code_writer.set_class(current_token)
     advance class_node
     advance class_node
@@ -117,10 +118,11 @@ class CompilationEngine
     subroutine_node = node
     subroutine_node[:type] = 'subroutineDec'
 
+    subroutine_type = current_token[:value]
     advance subroutine_node
     advance subroutine_node
     subroutine_name = current_token[:value]
-    @symbol_table.start_subroutine(subroutine_name)
+    @symbol_table.start_subroutine(subroutine_name, subroutine_type)
     advance subroutine_node
     advance subroutine_node
 
@@ -153,7 +155,7 @@ class CompilationEngine
       @symbol_table.current_subroutine,
       var_count)
 
-    if @symbol_table.current_subroutine == 'new'
+    if @symbol_table.current_subroutine_type == 'constructor'
       field_count = 0
       # static_count = 0
       @symbol_table.class_table.each do |k,v|
@@ -167,6 +169,11 @@ class CompilationEngine
       @code_writer.write_call('Memory.alloc',1)
       # set 'this' pointer to the address of new object
       @code_writer.write_pop('pointer', 0)
+    elsif @symbol_table.current_subroutine_type == 'method'
+      # Push the implicit first arg
+      @code_writer.write_push('argument',0)
+      # switch current context to 'this'
+      @code_writer.write_pop('pointer',0)
     end
 
     subroutine_body_node[:value] << compile_statements
@@ -367,6 +374,9 @@ class CompilationEngine
 
     if next_token[:value] == '.'
     #(className | varName) '.' subroutineName '(' expressionList ')'
+      if lookup(current_token)
+        type = lookup(current_token)[:type]
+      end
       name = current_token[:value]
       advance do_node
       name += current_token[:value]
@@ -387,8 +397,13 @@ class CompilationEngine
       # the same as calls to Class methods
       # Gotta look up the Class the instance belongs to
       # and pass the current instance as first arg
-
-      @code_writer.write_call(name, exp_count)
+      if type
+        @code_writer.write_push('this', 0)
+        name = name.gsub(/.+\./, "#{type}.")
+        @code_writer.write_call(name, exp_count + 1)
+      else
+        @code_writer.write_call(name, exp_count)
+      end
       advance do_node
     else
     # subroutineName '(' expressionList ')'
@@ -405,7 +420,9 @@ class CompilationEngine
         end
       end
 
-      @code_writer.write_call(name, exp_count)
+      name = [@symbol_table.current_class,name].join('.')
+      @code_writer.write_push('pointer', 0)
+      @code_writer.write_call(name, exp_count + 1)
       advance do_node
     end
 
@@ -549,10 +566,15 @@ class CompilationEngine
       advance term_node
     else
       # handle identifiers
-      @code_writer.write_push(
-        lookup(current_token)[:kind],
-        lookup(current_token)[:num]
-      )
+      token_info = lookup current_token
+      if token_info && token_info[:kind] == 'field'
+        @code_writer.write_push('this', token_info[:num])
+      else
+        @code_writer.write_push(
+          lookup(current_token)[:kind],
+          lookup(current_token)[:num]
+        )
+      end
       advance term_node
     end
 
