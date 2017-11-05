@@ -268,6 +268,7 @@ class CompilationEngine
 
   def compile_let
     # 'let' varName ('[' expression ']')? '=' expression ';'
+    is_array = false
     let_node = node
     let_node[:type] = 'letStatement'
     2.times do
@@ -277,8 +278,11 @@ class CompilationEngine
     destination = let_node[:value].last
 
     if current_token[:value] == '['
+      is_array = true
       advance let_node
       let_node[:value] << compile_expression
+      @code_writer.write_push(destination[:kind], destination[:index])
+      @code_writer.write_arithmetic('add')
       advance let_node
     end
 
@@ -291,7 +295,17 @@ class CompilationEngine
     when 'field'
       @code_writer.write_pop('this', destination[:index])
     else
-      @code_writer.write_pop(destination[:kind], destination[:index])
+      if is_array
+        @code_writer.write_pop('temp', 0)
+        @code_writer.write_pop('pointer', 1)
+        @code_writer.write_push('temp', 0)
+        @code_writer.write_pop('that', 0)
+      else
+        puts destination
+        @code_writer.write_pop(
+          destination[:kind],
+          destination[:index])
+      end
     end
 
     return let_node
@@ -505,6 +519,13 @@ class CompilationEngine
       @code_writer.write_push('constant', current_token[:value])
       advance term_node
     elsif current_token[:type] == 'stringConstant'
+      string_constant = current_token[:value]
+      @code_writer.write_push('constant', string_constant.length)
+      @code_writer.write_call('String.new', 1)
+      string_constant.each_byte do |c|
+        @code_writer.write_push('constant', c)
+        @code_writer.write_call('String.appendChar',2)
+      end
       advance term_node
     elsif current_token[:type] == 'keyword'
       case current_token[:value]
@@ -569,10 +590,15 @@ class CompilationEngine
         advance term_node
       end
     elsif next_token[:value] == '['
+      array_info = lookup current_token
       2.times do
         advance term_node
       end
       term_node[:value] << compile_expression
+      @code_writer.write_push(array_info[:kind],array_info[:num])
+      @code_writer.write_arithmetic('add')
+      @code_writer.write_pop('pointer', 1)
+      @code_writer.write_push('that', 0)
       advance term_node
     else
       # handle identifiers
