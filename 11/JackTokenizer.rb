@@ -126,6 +126,10 @@ class JackTokenizer
             tokenize! token_str[0...paren_position]
             tokenize! token_str[paren_position]
             tokenize! token_str[paren_position+1..-1]
+          elsif(token_str.index(','))
+            comma_pos = token_str.index(',')
+            tokenize! token_str[0...comma_pos]
+            tokenize! token_str[comma_pos+1..-1]
           else
              puts "UNHANDLED!: #{token_str} "
           end
