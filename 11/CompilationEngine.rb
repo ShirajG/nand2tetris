@@ -406,10 +406,11 @@ class CompilationEngine
       advance do_node
 
       exp_count = 0
-      if type
-        @code_writer.write_push('this', 1)
-        exp_count = 1
-      end
+
+      # if type
+        # @code_writer.write_push('this', 1)
+        # exp_count = 1
+      # end
 
       do_node[:value] << compile_expression_list
       do_node[:value].last[:value].each do |exp|
