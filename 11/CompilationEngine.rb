@@ -12,7 +12,7 @@ class CompilationEngine
     @filename = tokenizer.filename
     @token_idx = 0
     @symbol_table = SymbolTable.new()
-    @code_writer = VMWriter.new(File.open(@filename + '.vmx', 'w'))
+    @code_writer = VMWriter.new(File.open(@filename + '.vm', 'w'))
     # @xml = File.open(@filename + '.xml', 'w')
     @analyzed_file = compile_class
   end
@@ -406,7 +406,6 @@ class CompilationEngine
       advance do_node
 
       exp_count = 0
-
       # if type
         # @code_writer.write_push('this', 1)
         # exp_count = 1
