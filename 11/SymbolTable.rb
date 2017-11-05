@@ -1,11 +1,13 @@
 class SymbolTable
   # Keeps track of variables and their scoping
-  attr_reader :current_table, :class_table, :current_subroutine
+  attr_reader :current_table, :class_table, :current_subroutine, :current_subroutine_type
+  attr_accessor :current_class
 
   def initialize
     @class_table = {}
     @subroutine_table = {}
     @current_subroutine = nil
+    @current_subroutine_type = nil
     @current_table = @class_table
     @static_index = 0
     @field_index = 0
@@ -13,7 +15,7 @@ class SymbolTable
     @local_index = 0
   end
 
-  def start_subroutine(name)
+  def start_subroutine(name, type)
     @subroutine_table = {}
     @argument_index = 0
     @local_index = 0
