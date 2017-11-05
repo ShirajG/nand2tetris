@@ -98,7 +98,7 @@ M=D
 @SP
 M=M+1
 // pop static 1
-@@@current_file_nameSP
+@SP
 M=M-1
 @SP
 A=M

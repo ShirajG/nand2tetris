@@ -21,6 +21,7 @@ class SymbolTable
     @local_index = 0
     @current_table = @subroutine_table
     @current_subroutine = name
+    @current_subroutine_type = type
   end
 
   def define(variable)

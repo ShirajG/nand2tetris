@@ -24,6 +24,7 @@ class Card {
   }
 
   method String toString () {
+  /** Creates a display string for the card using its value and suit fields */
     var Array scope;
     var String str_val;
     let scope = Array.new(10);

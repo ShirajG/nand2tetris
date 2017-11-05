@@ -393,6 +393,7 @@ class CompilationEngine
     if next_token[:value] == '.'
     #(className | varName) '.' subroutineName '(' expressionList ')'
       if lookup(current_token)
+        token_info = lookup(current_token)
         type = lookup(current_token)[:type]
         kind = lookup(current_token)[:kind]
       end
@@ -404,8 +405,13 @@ class CompilationEngine
       advance do_node
       advance do_node
 
-      do_node[:value] << compile_expression_list
       exp_count = 0
+      if type
+        @code_writer.write_push('this', 1)
+        exp_count = 1
+      end
+
+      do_node[:value] << compile_expression_list
       do_node[:value].last[:value].each do |exp|
         if exp[:type] == 'expression'
           exp_count += 1
