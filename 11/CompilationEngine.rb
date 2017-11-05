@@ -301,7 +301,6 @@ class CompilationEngine
         @code_writer.write_push('temp', 0)
         @code_writer.write_pop('that', 0)
       else
-        puts destination
         @code_writer.write_pop(
           destination[:kind],
           destination[:index])
