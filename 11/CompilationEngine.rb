@@ -434,6 +434,7 @@ class CompilationEngine
       advance do_node
       advance do_node
 
+      @code_writer.write_push('pointer',0)
       do_node[:value] << compile_expression_list
 
       exp_count = 0
@@ -444,7 +445,6 @@ class CompilationEngine
       end
 
       name = [@symbol_table.current_class,name].join('.')
-      @code_writer.write_push('pointer',0)
       @code_writer.write_call(name, exp_count + 1)
       advance do_node
     end
@@ -504,6 +504,8 @@ class CompilationEngine
         @code_writer.write_arithmetic('eq')
       when '&'
         @code_writer.write_arithmetic('and')
+      when '|'
+        @code_writer.write_arithmetic('or')
       end
     end
 
@@ -604,6 +606,12 @@ class CompilationEngine
       token_info = lookup current_token
       if token_info && token_info[:kind] == 'field'
         @code_writer.write_push('this', token_info[:num])
+      elsif token_info && token_info[:kind] == 'argument' && @symbol_table.current_subroutine_type ==  'method'
+        # @code_writer.write_arithmetic "#{token_info}"
+        @code_writer.write_push(
+          lookup(current_token)[:kind],
+          lookup(current_token)[:num] + 1
+        )
       else
         @code_writer.write_push(
           lookup(current_token)[:kind],
