@@ -130,6 +130,11 @@ class JackTokenizer
           #   comma_pos = token_str.index(',')
           #   tokenize! token_str[0...comma_pos]
           #   tokenize! token_str[comma_pos+1..-1]
+          elsif(token_str.index '/' )
+            matches = /(.+)\/(.+)/.match(token_str)
+            tokenize! matches[1]
+            tokenize! '/'
+            tokenize! matches[2]
           else
              puts "UNHANDLED!: #{token_str} "
           end
