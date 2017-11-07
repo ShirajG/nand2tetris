@@ -11,54 +11,150 @@
  * string-oriented operations.
  */
 class String {
+    field int strLen;
+    field int max;
+    field Array chars;
 
     /** constructs a new empty string with a maximum length of maxLength
      *  and initial length of 0. */
     constructor String new(int maxLength) {
+      let max = maxLength;
+      if (maxLength = 0) {
+      } else {
+        let chars = Array.new(maxLength);
+      }
+      let strLen = 0;
+      return this;
     }
 
     /** Disposes this string. */
     method void dispose() {
+      do Memory.deAlloc(this);
+      return;
     }
 
     /** Returns the current length of this string. */
     method int length() {
+      return strLen;
     }
 
     /** Returns the character at the j-th location of this string. */
     method char charAt(int j) {
+      return chars[j];
     }
 
     /** Sets the character at the j-th location of this string to c. */
     method void setCharAt(int j, char c) {
+      let chars[j] = c;
+      return;
     }
 
     /** Appends c to this string's end and returns this string. */
     method String appendChar(char c) {
+      let chars[strLen] = c;
+      let strLen = strLen + 1;
+      return this;
     }
 
     /** Erases the last character from this string. */
     method void eraseLastChar() {
+      let strLen = strLen - 1;
+      let chars[strLen] = 0;
+      return;
     }
 
-    /** Returns the integer value of this string, 
+    /** Returns the integer value of this string,
      *  until a non-digit character is detected. */
     method int intValue() {
+      var int v,i,d;
+      var boolean neg;
+      let neg = false;
+      let v = 0;
+      let i = 0;
+
+      if (chars[i] = 45) {
+        let neg = true;
+        let i = 1;
+      }
+
+      while(~(i > strLen)) {
+        if ((chars[i] > 57) | (chars[i] < 48)) {
+          let i = strLen + 1;
+        } else {
+          let d = chars[i] - 48;
+          let v = v * 10 + d;
+          let i = i + 1;
+        }
+      }
+      if (neg) {
+        let v = -v;
+      }
+      return v;
     }
 
     /** Sets this string to hold a representation of the given value. */
     method void setInt(int val) {
+      var String intVal;
+      var boolean neg;
+      var int i, j;
+
+      let strLen = 0;
+      let i = 0;
+      let j = 0;
+
+      if(val < 0) {
+        let neg = true;
+        let val = -val;
+        let chars[0] = 45;
+        let strLen = 1;
+        let i = 1;
+      }
+
+      let intVal = String.int2String(val);
+
+      while(i < 6){
+        if((intVal.charAt(j) < 48) | (intVal.charAt(j) > 57)) {
+          let i = 6;
+        } else {
+          let chars[i] = intVal.charAt(j);
+          let j = j + 1;
+          let i = i + 1;
+          let strLen = strLen + 1;
+        }
+      }
+
+
+      return;
+    }
+
+    function String int2String(int val){
+      var int last, lastChar;
+      var String str;
+      let last = (val - (val / 10 * 10));
+      let lastChar = last + 48;
+      if (val < 10) {
+        let str = String.new(6);
+        do str.appendChar(lastChar);
+        return str;
+      } else {
+        let str = String.int2String(val/10);
+        do str.appendChar(lastChar);
+        return str;
+      }
     }
 
     /** Returns the new line character. */
     function char newLine() {
+      return 128;
     }
 
     /** Returns the backspace character. */
     function char backSpace() {
+      return 129;
     }
 
     /** Returns the double quote (") character. */
     function char doubleQuote() {
+      return 34;
     }
 }
