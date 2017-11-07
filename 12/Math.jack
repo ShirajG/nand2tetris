@@ -21,6 +21,7 @@ class Math {
         let power = power + power;
         let i = i + 1;
       }
+      do Output.println();
       return;
     }
 
@@ -34,23 +35,7 @@ class Math {
 
     /** Returns whether the j-th bit of x == 1 */
     function boolean bit(int x, int j) {
-      // [ 16384 8192 4096 2048 1024 512 256 128 64 32 16 8 4 2 1 ]
-      var int target, currentBitVal, i;
-      var Array binaryTarget;
-
-      let binaryTarget = Array.new(15);
-      let target = x;
-      let currentBitVal = nthPowerOfTwo[j];
-      let i = 14;
-
-      while (~(target = 0)) {
-        if(~(nthPowerOfTwo[i] < target)){
-          let target = target - nthPowerOfTwo[i];
-          let binaryTarget[i] = 1;
-        }
-        let i = i - 1;
-      }
-      return (binaryTarget[j] = 1);
+      return ((x & nthPowerOfTwo[j]) = nthPowerOfTwo[j]);
     }
 
     /** Returns the product of x and y.
@@ -79,14 +64,60 @@ class Math {
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
-      var int sum;
-      return sum;
+      var int q;
+      var boolean neg;
+
+      let neg = false;
+
+      if (~(Math.abs(x) = x)){
+        let neg = ~(neg);
+        let x = Math.abs(x);
+      }
+
+      if (~(Math.abs(y) = y)){
+        let neg = ~(neg);
+        let y = Math.abs(y);
+      }
+
+      if (y > x) { return 0; }
+      if (y < 0) { return 0; }
+
+      let q = Math.divide(x, (2 * y));
+
+      if ((x - (2 * q * y)) < y ) {
+        if (neg) {
+          return ((2 * q )* -1);
+        } else {
+          return 2 * q;
+        }
+      } else {
+        if (neg) {
+          return (((2 * q) + 1) * -1);
+        } else {
+          return (2 * q ) + 1;
+        }
+      }
     }
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-      var int root;
-      return root;
+      var int y,j,squaredTerm, term;
+      let y = 0;
+      let j = (x/2) - 1;
+      if (j > 7){
+        let j = 7;
+      }
+      while(~(j < 0)) {
+        let term = y + nthPowerOfTwo[j];
+        let squaredTerm = term * term;
+        if (squaredTerm < 0) { } else {
+          if(~(squaredTerm > x)) {
+            let y = y + nthPowerOfTwo[j];
+          }
+        }
+        let j = j - 1;
+      }
+      return y;
     }
 
     /** Returns the greater number. */

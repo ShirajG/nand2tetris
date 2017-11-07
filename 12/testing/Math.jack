@@ -101,8 +101,22 @@ class Math {
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-      var int y;
+      var int y,j,squaredTerm, term;
       let y = 0;
+      let j = (x/2) - 1;
+      if (j > 7){
+        let j = 7;
+      }
+      while(~(j < 0)) {
+        let term = y + nthPowerOfTwo[j];
+        let squaredTerm = term * term;
+        if (squaredTerm < 0) { } else {
+          if(~(squaredTerm > x)) {
+            let y = y + nthPowerOfTwo[j];
+          }
+        }
+        let j = j - 1;
+      }
       return y;
     }
 
