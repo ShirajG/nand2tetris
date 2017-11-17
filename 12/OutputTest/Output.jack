@@ -26,12 +26,12 @@ class Output {
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
+      do Output.initMap();
       let xPosition = 0;
       let yPosition = 0;
       let rowCount = 22;
       let columnCount = 63;
       let screenBase = 16384;
-      do Output.initMap();
       return;
     }
 
@@ -83,7 +83,7 @@ class Output {
       do Output.create(63,30,51,51,24,12,12,0,12,12,0,0);  // ?
       do Output.create(64,30,51,51,59,59,59,27,3,30,0,0);  // @
 
-      do Output.create(65,12,30,51,51,63,51,51,51,51,0,0);
+      do Output.create(65,12,30,51,51,63,51,51,51,51,0,0); // A
       do Output.create(66,31,51,51,51,31,51,51,51,31,0,0); // B
       do Output.create(67,28,54,35,3,3,3,35,54,28,0,0);    // C
       do Output.create(68,15,27,51,51,51,51,51,27,15,0,0); // D
@@ -198,33 +198,37 @@ class Output {
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
-      var Array charToPrint;
-      var int i, startAddress, currentPixels, pixelsToWrite, mask;
+      var Array pixelsToWrite, charToPrint;
+      var int i, startAddress, currentPixels,  mask;
 
       let charToPrint = Array.new(11);
+      let pixelsToWrite = Array.new(11);
       let charToPrint = Output.getMap(c);
       let i = 0;
       let startAddress = screenBase + (xPosition / 2) + (yPosition * 11 * 32);
 
-      // odd column
-      if(xPosition & 1) {
-        while(i < 11) {
-          let charToPrint[i] = charToPrint[i] * 256;
-          let i = i+1;
+      while(i < 11) {
+        if(xPosition & 1) {
+          let pixelsToWrite[i] = (charToPrint[i]) * 256;
+          let mask = 255;
+        } else {
+          let pixelsToWrite[i] = (charToPrint[i]);
+          let mask = -256;
         }
-        let i = 0;
-        let mask = 255;
-      } else {
-        let mask = -256;
+        let i = i+1;
       }
 
+      let i = 0;
       while (i < 11) {
         let currentPixels = Memory.peek(startAddress);
-        let currentPixels = ((currentPixels & mask)| charToPrint[i]);
+        let currentPixels = (currentPixels & mask);
+        let currentPixels = (currentPixels | pixelsToWrite[i]);
         do Memory.poke(startAddress, currentPixels);
         let i = i + 1;
         let startAddress = startAddress + 32;
       }
+
+      do pixelsToWrite.dispose();
 
       let xPosition = xPosition + 1;
       if(xPosition > columnCount) {
@@ -266,7 +270,7 @@ class Output {
     function void println() {
       let yPosition = yPosition + 1;
       let xPosition = 0;
-      if (yPosition > rowCount) {
+      if (yPosition > 22) {
         let yPosition = 0;
       }
       return;
