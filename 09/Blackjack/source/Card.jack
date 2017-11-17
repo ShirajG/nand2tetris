@@ -1,0 +1,69 @@
+class Card {
+  field String suit;
+  field int value;
+
+  constructor Card new(int val, String s) {
+    let suit = s;
+    let value = val;
+    return this;
+  }
+
+  method int getVal () {
+    // We need to limit jack, queen, king to return 10's
+    var int processedVal;
+    if (value > 10) {
+      let processedVal = 10;
+    } else {
+      let processedVal = value;
+    }
+    return processedVal;
+  }
+
+  method String getSuit () {
+    return suit;
+  }
+
+  method String toString () {
+  /** Creates a display string for the card using its value and suit fields */
+    var Array scope;
+    var String str_val;
+    let scope = Array.new(10);
+    let scope[0] = 0;
+    let scope[1] = suit.length();
+    let scope[2] = 0;
+
+    let str_val = String.new(50);
+    if (value = 1) {
+      do Strings.ace(str_val);
+    } else {
+      if (value = 11) {
+        do Strings.jack(str_val);
+      } else {
+        if (value = 12) {
+          do Strings.queen(str_val);
+        } else {
+          if (value = 13) {
+            do Strings.king(str_val);
+          } else {
+            do str_val.setInt(value);
+          }
+        }
+      }
+    }
+    // append " of " to value
+    do str_val.appendChar(32);
+    do str_val.appendChar(79);
+    do str_val.appendChar(102);
+    do str_val.appendChar(32);
+
+    while(scope[0] < scope[1]) {
+      // append suit name
+      do str_val.appendChar(suit.charAt(scope[0]));
+      let scope[0] = scope[0] + 1;
+    }
+    do str_val.appendChar(32);
+
+    do scope.dispose();
+    return str_val;
+  }
+}

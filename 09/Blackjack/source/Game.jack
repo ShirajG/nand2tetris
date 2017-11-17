@@ -1,0 +1,212 @@
+class Game {
+  field Deck gameDeck;
+  field Hand playerHand;
+  field Hand dealerHand;
+
+  constructor Game new () {
+    /** A Game has 2 hands, and a deck that it deals cards from.
+    */
+    let gameDeck = Deck.new();
+    let playerHand = Hand.new();
+    let dealerHand = Hand.new();
+    return this;
+  }
+
+  method void start () {
+    /** This is the main game loop, it handles getting input from the user,
+      displaying the players hands, and making sure to end/restart the game.
+    */
+    var bool gameInProgress;
+    var bool restart;
+
+    let restart = false;
+    let gameInProgress = true;
+    // Starts the game, putting 2 cards in the player and the dealers hands
+    do deal();
+    do printHands();
+    while (gameInProgress) {
+      let gameInProgress =  getPlayerChoice();
+    }
+
+    let restart = askForNewGame();
+    if(restart) {
+      // Clear out the memory used by the old cards arrays in each hand
+      do playerHand.dispose();
+      do dealerHand.dispose();
+      let playerHand = Hand.new();
+      let dealerHand = Hand.new();
+      do Utils.clear();
+      do start();
+    }
+
+    // Move cursor to the beginning of the last row
+    do Output.moveCursor(22, 0);
+    do Output.printString(Strings.endGame());
+    return;
+  }
+
+  method void deal(){
+  /** Deal 2 random cards from the Game deck to each player */
+    var Card drawnCard;
+    var int i;
+    let i = 0;
+
+    while(i < 2){
+      let drawnCard = gameDeck.getCard(RandomNumberGenerator.getRand());
+      do playerHand.addCard(drawnCard);
+      let i = i + 1;
+    }
+
+    let i = 0;
+    while(i < 2){
+      let drawnCard = gameDeck.getCard(RandomNumberGenerator.getRand());
+      do dealerHand.addCard(drawnCard);
+      let i = i + 1;
+    }
+    return;
+  }
+
+  method void hit() {
+    /** Adding a card to the Player hand. No local variables needed. */
+    do playerHand.addCard(gameDeck.getCard(RandomNumberGenerator.getRand()));
+    return;
+  }
+
+  method void printHands(){
+    // Print player hand
+    do Output.printString(Strings.playerHand());
+    do Output.println();
+    do playerHand.print();
+    do Output.println();
+    // Print the face up card from the dealer hand
+    do Output.printString(Strings.dealerHand());
+    do Output.println();
+    do dealerHand.dealerPrint();
+    do Output.println();
+    return;
+  }
+
+  method bool getPlayerChoice () {
+    /** Prompts the player if they want to hit or not. */
+    var bool continue;
+    var String choice;
+    do Output.moveCursor(22, 0);
+    let choice = Keyboard.readLine(Strings.askToHit());
+
+    if(choice.charAt(0) = 89){
+      let continue = true;
+      do hit();
+      do Utils.clear();
+      do printHands();
+    } else {
+      do Utils.clear();
+      do endGame();
+    }
+    return continue;
+  }
+
+  method bool askForNewGame() {
+  /** Ask the player to play anohter hand */
+    var bool playAgain;
+    var String choice;
+
+    let playAgain = false;
+
+    do Output.moveCursor(22, 0);
+    let choice = Keyboard.readLine(Strings.askToReplay());
+
+    if(choice.charAt(0) = 89){
+      let playAgain = true;
+    }
+    return playAgain;
+  }
+
+  method void hitDealer(){
+    // At game end, Dealer must hit until its hand is worth at least 16
+    var int dealerScore;
+    let dealerScore = dealerHand.calculateScore();
+    while(dealerScore < 16) {
+      do Output.println();
+      do Output.printString("Dealer must hit..");
+      do dealerHand.addCard(gameDeck.getCard(RandomNumberGenerator.getRand()));
+      let dealerScore = dealerHand.calculateScore();
+    }
+    return;
+  }
+
+  method void endGame() {
+  /** End game logic:
+      Print the players hand,
+      make the dealer draw til 16,
+      detrmine the winner by comparing hand scores
+  */
+    // Print player hand
+    do Output.printString(Strings.playerHand());
+    do Output.println();
+    do playerHand.print();
+    do Output.println();
+
+    do hitDealer();
+
+    // Print the face up card from the dealer hand
+    do Output.println();
+    do Output.printString(Strings.dealerHand());
+    do Output.println();
+    do dealerHand.print();
+    do Output.println();
+    do printScore();
+
+    return;
+  }
+
+  method void printScore() {
+    do Output.println();
+    do Output.printString(Strings.scoring());
+
+    do Output.println();
+    do Output.printString(Strings.playerScore());
+    do Output.printInt(playerHand.calculateScore());
+
+    do Output.println();
+    do Output.printString(Strings.dealerScore());
+    do Output.printInt(dealerHand.calculateScore());
+
+    do Output.println();
+    do Output.printString(determineWinner());
+    return;
+  }
+
+  method String determineWinner () {
+  /** Rules for determining winner */
+    var int playerScore;
+    var int dealerScore;
+    var String winner;
+
+    let playerScore = playerHand.calculateScore();
+    let dealerScore = dealerHand.calculateScore();
+
+    if (playerScore > 21) {
+      if (dealerScore > 21) {
+        let winner = "Both Bust, You shouldn't have hit.";
+      } else {
+        let winner = "You Bust, Dealer Wins";
+      }
+    } else {
+      if (dealerScore > 21){
+        let winner = "Dealer Busts, You Win!";
+      } else {
+        if(playerScore = dealerScore)  {
+          let winner = "Push, You Win!";
+        } else {
+          if(dealerScore > playerScore) {
+            let winner = "Dealer Wins";
+          } else {
+            let winner = "You Win!";
+          }
+        }
+      }
+    }
+
+    return winner;
+  }
+}

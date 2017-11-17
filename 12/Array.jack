@@ -20,4 +20,4 @@ class Array {
     /** Disposes this array. */
     method void dispose() {
     }
-}
+
