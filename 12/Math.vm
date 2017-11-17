@@ -1,0 +1,176 @@
+function Math.init 2
+push constant 1
+pop local 1
+push constant 0
+pop local 0
+push constant 16
+call Array.new 1
+pop static 0
+label WHILE_EXP0
+push local 0
+push constant 16
+lt
+not
+if-goto WHILE_END0
+push local 0
+push static 0
+add
+push local 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 1
+push local 1
+add
+pop local 1
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function Math.abs 0
+push argument 0
+push constant 0
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+return
+label IF_FALSE0
+push argument 0
+neg
+return
+function Math.bit 4
+push constant 15
+call Array.new 1
+pop local 3
+push argument 0
+pop local 0
+push argument 1
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 1
+push constant 14
+pop local 2
+label WHILE_EXP0
+push local 0
+push constant 0
+eq
+not
+not
+if-goto WHILE_END0
+push local 2
+push static 0
+add
+pop pointer 1
+push that 0
+push local 0
+lt
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 0
+push local 2
+push static 0
+add
+pop pointer 1
+push that 0
+sub
+pop local 0
+push local 2
+push local 3
+add
+push constant 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+label IF_FALSE0
+push local 2
+push constant 1
+sub
+pop local 2
+goto WHILE_EXP0
+label WHILE_END0
+push argument 1
+push local 3
+add
+pop pointer 1
+push that 0
+push constant 1
+eq
+return
+function Math.multiply 3
+push argument 0
+pop local 2
+push constant 0
+pop local 0
+push constant 0
+pop local 1
+label WHILE_EXP0
+push local 1
+push constant 16
+lt
+not
+if-goto WHILE_END0
+push argument 1
+push local 1
+call Math.bit 2
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 0
+push local 2
+add
+pop local 0
+label IF_FALSE0
+push local 2
+push local 2
+add
+pop local 2
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+function Math.divide 1
+push local 0
+return
+function Math.sqrt 1
+push local 0
+return
+function Math.max 0
+push argument 0
+push argument 1
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+return
+label IF_FALSE0
+push argument 1
+return
+function Math.min 0
+push argument 0
+push argument 1
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+return
+label IF_FALSE0
+push argument 1
+return

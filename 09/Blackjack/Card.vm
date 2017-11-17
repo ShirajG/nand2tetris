@@ -1,0 +1,184 @@
+function Card.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+push argument 1
+pop this 0
+push argument 0
+pop this 1
+push pointer 0
+return
+function Card.getVal 1
+push argument 0
+pop pointer 0
+push this 1
+push constant 10
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 10
+pop local 0
+goto IF_END0
+label IF_FALSE0
+push this 1
+pop local 0
+label IF_END0
+push local 0
+return
+function Card.getSuit 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function Card.toString 2
+push argument 0
+pop pointer 0
+push constant 10
+call Array.new 1
+pop local 0
+push constant 0
+push local 0
+add
+push constant 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 1
+push local 0
+add
+push this 0
+call String.length 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 2
+push local 0
+add
+push constant 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 50
+call String.new 1
+pop local 1
+push this 1
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 1
+call Strings.ace 1
+pop temp 0
+goto IF_END0
+label IF_FALSE0
+push this 1
+push constant 11
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 1
+call Strings.jack 1
+pop temp 0
+goto IF_END1
+label IF_FALSE1
+push this 1
+push constant 12
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 1
+call Strings.queen 1
+pop temp 0
+goto IF_END2
+label IF_FALSE2
+push this 1
+push constant 13
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push local 1
+call Strings.king 1
+pop temp 0
+goto IF_END3
+label IF_FALSE3
+push local 1
+push this 1
+call String.setInt 2
+pop temp 0
+label IF_END3
+label IF_END2
+label IF_END1
+label IF_END0
+push local 1
+push constant 32
+call String.appendChar 2
+pop temp 0
+push local 1
+push constant 79
+call String.appendChar 2
+pop temp 0
+push local 1
+push constant 102
+call String.appendChar 2
+pop temp 0
+push local 1
+push constant 32
+call String.appendChar 2
+pop temp 0
+label WHILE_EXP0
+push constant 0
+push local 0
+add
+pop pointer 1
+push that 0
+push constant 1
+push local 0
+add
+pop pointer 1
+push that 0
+lt
+not
+if-goto WHILE_END0
+push local 1
+push this 0
+push constant 0
+push local 0
+add
+pop pointer 1
+push that 0
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push constant 0
+push local 0
+add
+push constant 0
+push local 0
+add
+pop pointer 1
+push that 0
+push constant 1
+add
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+goto WHILE_EXP0
+label WHILE_END0
+push local 1
+push constant 32
+call String.appendChar 2
+pop temp 0
+push local 0
+call Array.dispose 1
+pop temp 0
+push local 1
+return

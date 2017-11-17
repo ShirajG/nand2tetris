@@ -135,6 +135,10 @@ class JackTokenizer
             tokenize! matches[1]
             tokenize! '/'
             tokenize! matches[2]
+          elsif(token_str.index '[')
+            brack_pos = token_str.index('[')
+            tokenize! token_str[0...brack_pos]
+            tokenize! token_str[brack_pos..-1]
           else
              puts "UNHANDLED!: #{token_str} "
           end
@@ -154,7 +158,7 @@ class JackTokenizer
       end
     end
 
-    @tokens << token unless token.nil?
+    @tokens << token unless token.nil? || token[:value] == ''
   end
 
   def contains_symbols(token_str)

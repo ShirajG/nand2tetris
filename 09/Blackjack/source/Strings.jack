@@ -1,0 +1,121 @@
+/**
+Keep track of strings used in the game in here.
+Declared once, and reused from here. The functions
+just serve as accessors to these strings.
+*/
+class Strings {
+
+  static String playerHandMsg;
+  static String dealerHandMsg;
+  static String welcomeMsg;
+  static String hitMsg;
+  static String winMsg;
+  static String lossMsg;
+  static String scoringMsg;
+  static String playerScoreMsg;
+  static String dealerScoreMsg;
+  static String aceCard;
+  static String jackCard;
+  static String queenCard;
+  static String kingCard;
+  static String askToReplayMsg;
+  static String endGameMsg;
+
+  function void init () {
+    let playerHandMsg = "Your Hand Is: ";
+    let dealerHandMsg = "Dealer Shows: ";
+    let welcomeMsg = "Welcome to Blackjack! Press any key to start!";
+    let hitMsg = "Do you want to hit? (y/n)";
+    let scoringMsg = "Final Scores were:";
+    let playerScoreMsg = "You have ";
+    let dealerScoreMsg = "Dealer has ";
+    let winMsg = "You win!!";
+    let lossMsg = "You lose :(";
+    let askToReplayMsg = "Do you want to play another hand? (y/n)";
+    let endGameMsg = "Thanks for playing!                         ";
+    return;
+  }
+
+  function String endGame () {
+    return endGameMsg;
+  }
+
+  function String askToReplay () {
+    return askToReplayMsg;
+  }
+
+  function void ace (String str_val) {
+    // The named card functions work with an already declared string
+    // We need to append into a string that has higher capacity
+    // since we are going to add more words after, ie: "Ace of Spades"
+    // Appends "A" "c" "e" to string
+    do str_val.appendChar(65);
+    do str_val.appendChar(99);
+    do str_val.appendChar(101);
+    return;
+  }
+
+  function void jack (String str_val) {
+    // Appends "J" "a" "c" "k" to string
+    do str_val.appendChar(74);
+    do str_val.appendChar(97);
+    do str_val.appendChar(99);
+    do str_val.appendChar(107);
+    return;
+  }
+
+  function void queen (String str_val) {
+    // Appends "Q" "u" "e" "e" "n" to string
+    do str_val.appendChar(81);
+    do str_val.appendChar(117);
+    do str_val.appendChar(101);
+    do str_val.appendChar(101);
+    do str_val.appendChar(110);
+    return;
+  }
+
+  function void king (String str_val) {
+    // Appends "K" "i" "n" "g" to string
+    do str_val.appendChar(75);
+    do str_val.appendChar(105);
+    do str_val.appendChar(110);
+    do str_val.appendChar(103);
+    return;
+  }
+
+  function String loss() {
+    return lossMsg;
+  }
+
+  function String win() {
+    return winMsg;
+  }
+
+  function String scoring(){
+    return scoringMsg;
+  }
+
+  function String playerScore(){
+    return playerScoreMsg;
+  }
+
+  function String dealerScore(){
+    return dealerScoreMsg;
+  }
+
+  function String askToHit() {
+    return hitMsg;
+  }
+
+  function String playerHand(){
+    return playerHandMsg;
+  }
+
+  function String dealerHand(){
+    return dealerHandMsg;
+  }
+
+  function String welcome(){
+    return welcomeMsg;
+  }
+}
