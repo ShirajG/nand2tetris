@@ -11,10 +11,12 @@
  */
 class Screen {
     static int screenBase;
+    static boolean currentColor;
 
     /** Initializes the Screen. */
     function void init() {
       let screenBase = 16384;
+      let currentColor = true;
       return;
     }
 
@@ -23,7 +25,7 @@ class Screen {
       var int i;
       let i = 0;
       while(i < 512) {
-        Memory.poke((screenBase + i),0);
+        do Memory.poke((screenBase + i),0);
         let i = i + 1;
       }
       return;
@@ -32,12 +34,31 @@ class Screen {
     /** Sets the current color, to be used for all subsequent drawXXX commands.
      *  Black is represented by true, white by false. */
     function void setColor(boolean b) {
+      let currentColor = b;
       return;
-
     }
 
     /** Draws the (x,y) pixel, using the current color. */
     function void drawPixel(int x, int y) {
+      var int baseWord, pixelOffset, currentContent, i, mask;
+      let baseWord = (y * 32) + (x / 16) + screenBase;
+      let currentContent = Memory.peek(baseWord);
+      let pixelOffset = x - ((x/16) * 16);
+      let mask = 1;
+
+      while (pixelOffset > 0) {
+        let mask = mask * 2;
+        let pixelOffset = pixelOffset - 1;
+      }
+
+      if (~currentColor) {
+        let mask = ~mask;
+        let currentContent = (currentContent & mask);
+      } else {
+        let currentContent = (currentContent | mask);
+      }
+
+      do Memory.poke(baseWord, currentContent);
       return;
     }
 
