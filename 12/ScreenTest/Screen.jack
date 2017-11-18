@@ -67,48 +67,87 @@ class Screen {
       var int dx, dy, a, b, slopeDirection, diff;
       let a = 0;
       let b = 0;
-      let dx = Math.abs(x2 - x1);
+      let dx = x2 - x1;
       let dy = y2 - y1;
       let diff = 0;
 
       // Horizontal Line
       if (dy = 0) {
-        while (~(a > dx)) {
-          do Screen.drawPixel(x1 + a, y1);
-          let a = a + 1;
+        if (dx < 0) {
+          while (~(a > -dx)) {
+            do Screen.drawPixel(x1 - a, y1);
+            let a = a + 1;
+          }
+        } else {
+          while (~(a > dx)) {
+            do Screen.drawPixel(x1 + a, y1);
+            let a = a + 1;
+          }
         }
       }
 
       // Vertical Line
       if (dx = 0) {
-        while (~(b > dy)) {
-          do Screen.drawPixel(x1, y1 + b);
-          let b = b + 1;
+        if(dy < 0) {
+          while (~(b > -dy)) {
+            do Screen.drawPixel(x1, y1 - b);
+            let b = b + 1;
+          }
+        } else {
+          while (~(b > dy)) {
+            do Screen.drawPixel(x1, y1 + b);
+            let b = b + 1;
+          }
         }
       }
 
       if (~(dx = 0) & ~(dy = 0)) {
-        if (dy < 0) {
-          while (~(a > dx) & ~(b > dy)) {
-            do Output.printString("here");
-            do Screen.drawPixel(x1 + a, y1 - b);
+        if((dy < 0) & (dx < 0)) {
+          while (~(a > -dx) & ~(b > -dy)) {
+            do Screen.drawPixel(x1 - a, y1 - b);
             if (diff < 0) {
               let a = a + 1;
-              let diff = diff + dy;
+              let diff = diff + -dy;
             } else {
               let b = b + 1;
-              let diff = diff - dx;
+              let diff = diff - -dx;
             }
           }
         } else {
-          while (~(a > dx) & ~(b > dy)) {
-            do Screen.drawPixel(x1 + a, y1 + b);
-            if (diff < 0) {
-              let a = a + 1;
-              let diff = diff + dy;
+          if (dy < 0) {
+            while (~(a > dx) & ~(b > -dy)) {
+              do Screen.drawPixel(x1 + a, y1 - b);
+              if (diff < 0) {
+                let a = a + 1;
+                let diff = diff - dy;
+              } else {
+                let b = b + 1;
+                let diff = diff - dx;
+              }
+            }
+          } else {
+            if (dx < 0) {
+              while (~(a > -dx) & ~(b > dy)) {
+                do Screen.drawPixel(x1 - a, y1 + b);
+                if (diff < 0) {
+                  let a = a + 1;
+                  let diff = diff + dy;
+                } else {
+                  let b = b + 1;
+                  let diff = diff + dx;
+                }
+              }
             } else {
-              let b = b + 1;
-              let diff = diff - dx;
+              while (~(a > dx) & ~(b > dy)) {
+                do Screen.drawPixel(x1 + a, y1 + b);
+                if (diff < 0) {
+                  let a = a + 1;
+                  let diff = diff + dy;
+                } else {
+                  let b = b + 1;
+                  let diff = diff - dx;
+                }
+              }
             }
           }
         }
