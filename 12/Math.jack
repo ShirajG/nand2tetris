@@ -21,7 +21,6 @@ class Math {
         let power = power + power;
         let i = i + 1;
       }
-      do Output.println();
       return;
     }
 
